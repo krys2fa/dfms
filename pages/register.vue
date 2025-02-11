@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { supabase } from "../composables/useSupabase";
-const router = useRouter();
+import { useAuthStore } from "../stores/auth";
+import { reactive, ref } from "vue";
+
+const authStore = useAuthStore();
 const form = reactive({ email: "", password: "" });
 const errorMessage = ref("");
 
 async function register() {
-  const { data, error } = await supabase.auth.signUp(form);
+  errorMessage.value = "";
+  const { error } = await authStore.register(form.email, form.password);
+  
   if (error) {
     errorMessage.value = error.message;
-  } else {
-    router.push("/login");
   }
 }
 </script>
@@ -23,12 +25,14 @@ async function register() {
         type="email"
         placeholder="Email"
         class="input"
+        required
       />
       <input
         v-model="form.password"
         type="password"
         placeholder="Password"
         class="input"
+        required
       />
       <button type="submit" class="btn">Sign Up</button>
       <p v-if="errorMessage" class="text-red-500">{{ errorMessage }}</p>
@@ -39,3 +43,19 @@ async function register() {
     </p>
   </div>
 </template>
+
+<style scoped>
+.input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+.btn {
+  width: 100%;
+  background: #3b82f6;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+}
+</style>

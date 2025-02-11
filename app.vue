@@ -1,29 +1,17 @@
 <script setup lang="ts">
-import { createPinia } from "pinia";
-import { supabase } from "./composables/useSupabase";
 import { useAuthStore } from "./stores/auth";
-import { useRouter } from "vue-router";
 import { onMounted, ref } from "vue";
 
-// Create Pinia instance
-const pinia = createPinia();
 const authStore = useAuthStore();
-const router = useRouter();
 const loading = ref(true);
 
-// Watch for authentication changes
-onMounted(async () => {
-  const { data: user } = await supabase.auth.getUser();
+console.log('authStore', authStore);
 
-  if (user?.user) {
-    authStore.setUser(user.user);
-    router.push("/dashboard");
-  } else {
-    router.push("/login");
-  }
-
-  loading.value = false;
-});
+// onMounted(async () => {
+//   console.log(await authStore.fetchUser());
+//   await authStore.fetchUser(); // Fetch user profile via Pinia store
+//   loading.value = false;
+// });
 </script>
 
 <template>

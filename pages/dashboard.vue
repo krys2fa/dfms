@@ -1,14 +1,10 @@
-
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
-
-import { supabase } from "../composables/useSupabase";
-import type { User } from "@supabase/supabase-js";
+import { ref, onMounted } from "vue";
+import { useAuthStore } from "../stores/auth";
 import { useRouter } from "vue-router";
 
-// const { supabase } = useSupabase();
+const authStore = useAuthStore();
 const router = useRouter();
-const user = ref<User | null>(null);
 
 const transactions = ref<any[]>([]);
 const loading = ref(true);
@@ -17,35 +13,13 @@ const capturedImage = ref<string | null>(null);
 
 // 🚀 Redirect if not logged in
 onMounted(async () => {
-  const { data: userData } = await supabase.auth.getUser();
-  
-  user.value = userData.user;
-  if (!user.value) {
+  await authStore.fetchUser();
+  if (!authStore.user) {
     router.push("/login");
   }
-  fetchTransactions();
-  listenForTransactionUpdates();
+  console.log(authStore.user);
+  // fetchTransactions();
 });
-
-// 🛒 Fetch Transactions from Supabase
-const fetchTransactions = async () => {
-  loading.value = true;
-  const { data, error } = await supabase.from("transactions").select("*");
-  if (data) transactions.value = data;
-  loading.value = false;
-};
-
-// 📡 Listen for real-time transactions
-const listenForTransactionUpdates = () => {
-  supabase
-    .channel("transactions")
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "transactions" },
-      fetchTransactions
-    )
-    .subscribe();
-};
 
 // 📷 Capture License Plate Image
 const openCamera = () => (cameraOpen.value = true);
@@ -53,12 +27,6 @@ const handleCapture = (image: string) => {
   capturedImage.value = image;
   cameraOpen.value = false;
 };
-
-// 📤 Logout Function
-// const logout = async () => {
-//   await supabase.auth.signOut();
-//   router.push("/login");
-// };
 </script>
 
 <template>
@@ -67,12 +35,12 @@ const handleCapture = (image: string) => {
       <!-- 🔹 Dashboard Header -->
       <header class="flex justify-between items-center border-b pb-4 mb-4">
         <h1 class="text-2xl font-semibold">🚀 Fuel Management Dashboard</h1>
-        <!-- <button
-          @click="logout"
+        <button
+          @click="authStore.signOut()"
           class="px-4 py-2 bg-red-500 text-white rounded-lg"
         >
           Logout
-        </button> -->
+        </button>
       </header>
 
       <!-- 🔹 Transaction List -->
@@ -111,14 +79,6 @@ const handleCapture = (image: string) => {
           class="mt-2 w-48 rounded-lg shadow-lg"
         />
       </section>
-
-      <!-- 📤 Download Report -->
-      <button
-        @click="fetchTransactions"
-        class="mt-4 px-4 py-2 bg-green-500 text-white rounded-lg"
-      >
-        📊 Download Report
-      </button>
     </div>
   </div>
 </template>

@@ -1,11 +1,14 @@
 {
   "compilerOptions": {
     "moduleResolution": "node",
-    "types": ["@supabase/supabase-js"],
+    "types": ["@nuxt/types", "@nuxt/schema", "@supabase/supabase-js"],
     "paths": {
       "@/*": ["./"]
-    }
+    },
+    "strict": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   },
-  // https://nuxt.com/docs/guide/concepts/typescript
+  "include": ["./**/*.ts", "./**/*.d.ts", "./**/*.vue"],
   "extends": "./.nuxt/tsconfig.json"
 }
