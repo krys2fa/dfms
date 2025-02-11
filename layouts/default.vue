@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import Sidebar from "../components/SideBar.vue";
+import Header from "../components/Header.vue";
+import Footer from "../components/Footer.vue";
 import { useAuthStore } from "../stores/auth";
 import type { User } from "@supabase/supabase-js";
 import { ref, onMounted } from "vue";
@@ -12,7 +15,11 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
+  <div class="flex min-h-screen bg-gray-100">
+    <!-- Sidebar -->
+    <Sidebar />
+
+
     <nav class="p-4 bg-gray-800 text-white flex justify-between">
       <NuxtLink to="/" class="text-xl font-bold"
         >Digital Fuel Management System</NuxtLink
@@ -24,6 +31,18 @@ onMounted(async () => {
         </button>
       </div>
     </nav>
-    <slot />
+
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col">
+      <Header />
+
+      <main class="flex-1 p-6 overflow-y-auto">
+        <slot />
+      </main>
+
+      <Footer />
+    </div>
   </div>
 </template>
+
