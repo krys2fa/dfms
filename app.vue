@@ -7,11 +7,11 @@ const loading = ref(true);
 
 console.log('authStore', authStore);
 
-// onMounted(async () => {
-//   console.log(await authStore.fetchUser());
-//   await authStore.fetchUser(); // Fetch user profile via Pinia store
-//   loading.value = false;
-// });
+onMounted(async () => {
+  console.log('authStore2',await authStore.fetchUser());
+  await authStore.fetchUser(); // Fetch user profile via Pinia store
+  loading.value = false;
+});
 </script>
 
 <template>

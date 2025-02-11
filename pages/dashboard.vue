@@ -11,14 +11,15 @@ const loading = ref(true);
 const cameraOpen = ref(false);
 const capturedImage = ref<string | null>(null);
 
-// 🚀 Redirect if not logged in
+// 🚀 Ensure Session is Active Before Loading Dashboard
 onMounted(async () => {
-  await authStore.fetchUser();
-  if (!authStore.user) {
-    router.push("/login");
+  const hasSession = await authStore.checkSession();
+  if (!hasSession) {
+    router.push("/login"); // Redirect to login if no session exists
+    return;
   }
-  console.log(authStore.user);
-  // fetchTransactions();
+  
+  await authStore.fetchUser(); // Fetch user after verifying session
 });
 
 // 📷 Capture License Plate Image

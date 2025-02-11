@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { useSupabase } from "../composables/useSupabase";
+import { useAuthStore } from "../stores/auth";
 import type { User } from "@supabase/supabase-js";
+import { ref, onMounted } from "vue";
 
-const { supabase, logout } = useSupabase();
+const { fetchUser, signOut } = useAuthStore();
 const user = ref<User | null>(null);
 
 onMounted(async () => {
-  const { data } = await supabase.auth.getUser();
-  user.value = data.user;
+  await fetchUser();
 });
 </script>
 
@@ -19,7 +19,7 @@ onMounted(async () => {
       >
       <div v-if="user">
         <span class="mr-4">{{ user.email }}</span>
-        <button @click="logout" class="bg-red-500 px-3 py-1 rounded">
+        <button @click="signOut" class="bg-red-500 px-3 py-1 rounded">
           Logout
         </button>
       </div>

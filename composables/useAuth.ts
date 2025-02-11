@@ -3,7 +3,6 @@ import { useRouter } from "vue-router";
 
 const useAuth = () => {
   const { $supabase } = useNuxtApp() as unknown as { $supabase: any };
-  const router = useRouter();
 
   // Login user with email & password
   const login = async (email: string, password: string) => {
@@ -50,7 +49,6 @@ const useAuth = () => {
 
   const logout = async () => {
     await $supabase.auth.signOut();
-    router.push("/login");
   };
 
   return { getUserProfile, logout, login, register };
