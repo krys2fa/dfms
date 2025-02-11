@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { createPinia } from "pinia";
-import { useSupabase } from "./composables/useSupabase";
+import { supabase } from "./composables/useSupabase";
 import { useAuthStore } from "./stores/auth";
 import { useRouter } from "vue-router";
 import { onMounted, ref } from "vue";
 
 // Create Pinia instance
 const pinia = createPinia();
-const { supabase } = useSupabase();
 const authStore = useAuthStore();
 const router = useRouter();
 const loading = ref(true);

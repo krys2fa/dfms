@@ -1,52 +1,13 @@
-<!-- <script setup lang="ts">
-import { useSupabase } from "../composables/useSupabase";
-import { useAuthStore } from "../stores/auth";
-import { useRouter } from "vue-router";
-
-const { supabase } = useSupabase();
-const authStore = useAuthStore();
-const router = useRouter();
-
-async function logout() {
-  await supabase.auth.signOut();
-  authStore.signOut();
-  router.push("/auth/login");
-}
-</script>
-
-<template>
-  <div class="flex flex-col items-center justify-center min-h-screen">
-    <h1 class="text-3xl font-bold">Fuel Sales Dashboard</h1>
-    <button @click="logout" class="btn mt-4">Logout</button>
-    <ul>
-      <li v-for="(transaction, index) in transactions" :key="index" class="p-4 bg-white shadow-md my-2">
-        {{ transaction.vehicle }} - {{ transaction.amount }} Liters
-      </li>
-    </ul>
-  </div>
-</template>
-
-<style scoped>
-.btn {
-  background: #ef4444;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 5px;
-}
-</style> -->
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
-// import { useSupabaseClient, useUser } from "@supabase/supabase-js";
 
-import { useSupabase } from "../composables/useSupabase";
+import { supabase } from "../composables/useSupabase";
 import type { User } from "@supabase/supabase-js";
 import { useRouter } from "vue-router";
 
-// const supabase = useSupabaseClient();
-const { supabase } = useSupabase();
+// const { supabase } = useSupabase();
 const router = useRouter();
-// const user = useUser();
 const user = ref<User | null>(null);
 
 const transactions = ref<any[]>([]);
@@ -56,6 +17,9 @@ const capturedImage = ref<string | null>(null);
 
 // 🚀 Redirect if not logged in
 onMounted(async () => {
+  const { data: userData } = await supabase.auth.getUser();
+  
+  user.value = userData.user;
   if (!user.value) {
     router.push("/login");
   }
@@ -91,10 +55,10 @@ const handleCapture = (image: string) => {
 };
 
 // 📤 Logout Function
-const logout = async () => {
-  await supabase.auth.signOut();
-  router.push("/login");
-};
+// const logout = async () => {
+//   await supabase.auth.signOut();
+//   router.push("/login");
+// };
 </script>
 
 <template>
@@ -103,12 +67,12 @@ const logout = async () => {
       <!-- 🔹 Dashboard Header -->
       <header class="flex justify-between items-center border-b pb-4 mb-4">
         <h1 class="text-2xl font-semibold">🚀 Fuel Management Dashboard</h1>
-        <button
+        <!-- <button
           @click="logout"
           class="px-4 py-2 bg-red-500 text-white rounded-lg"
         >
           Logout
-        </button>
+        </button> -->
       </header>
 
       <!-- 🔹 Transaction List -->

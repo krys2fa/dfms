@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { supabase } = useSupabase();
+import { supabase } from "../composables/useSupabase";
 const router = useRouter();
 const form = reactive({ email: "", password: "" });
 const errorMessage = ref("");
@@ -35,7 +35,7 @@ async function register() {
     </form>
     <p class="mt-4">
       Already have an account?
-      <NuxtLink to="/auth/login" class="text-blue-500">Login</NuxtLink>
+      <NuxtLink to="/login" class="text-blue-500">Login</NuxtLink>
     </p>
   </div>
 </template>

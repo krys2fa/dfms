@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useAuthStore } from "../stores/auth";
+import { supabase } from "../composables/useSupabase";
 
 const router = useRouter();
-const { supabase } = useSupabase();
 const authStore = useAuthStore();
 const email = ref("");
 const password = ref("");
@@ -16,6 +16,7 @@ const login = async () => {
   });
 
   if (error) {
+    console.error("Error logging in:", error.message);
     errorMessage.value = error.message;
   } else {
     authStore.setUser(data.user);
