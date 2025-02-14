@@ -59,7 +59,7 @@ export const useAuthStore = defineStore("auth", {
       if (typeof window !== "undefined") {
         localStorage.removeItem("userSession");
       }
-      router.push("/login");
+      router.push("/auth/login");
       return true
     },
 
