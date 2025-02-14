@@ -1,5 +1,5 @@
 {
-  "name": "nuxt-app",
+  "name": "dfms",
   "private": true,
   "type": "module",
   "scripts": {
@@ -21,7 +21,15 @@
     "vue-chartjs": "^5.3.2",
     "vue-router": "latest",
     "vue-socket.io": "^3.0.10",
-    "vue-toastification": "^1.7.14"
+    "vue-toastification": "^1.7.14",
+    "@mdi/font": "^6.5.95",
+    "@nuxt/vite-builder": "^3.7.4",
+    "apexcharts": "3.36.3",
+    "sass": "^1.49.9",
+    "vue-tabler-icons": "2.9.0",
+    "vue3-apexcharts": "1.4.1",
+    "vue3-perfect-scrollbar": "1.6.0",
+    "vuetify": "3.3.19"
   },
   "devDependencies": {
     "@nuxt/types": "^2.18.1",
