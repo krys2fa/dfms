@@ -1,16 +1,21 @@
 <script setup lang="ts">
 import { useAuthStore } from "./stores/auth";
 import { onMounted, ref } from "vue";
+import { useToast } from "vue-toastification";
 
 const authStore = useAuthStore();
 const loading = ref(true);
-
-console.log('authStore', authStore);
+const toast = useToast();
 
 onMounted(async () => {
-  console.log('authStore2',await authStore.fetchUser());
-  await authStore.fetchUser(); // Fetch user profile via Pinia store
-  loading.value = false;
+  try {
+    await authStore.fetchUser();
+    toast.success("User data loaded successfully!");
+  } catch (error) {
+    toast.error("Failed to fetch user data.");
+  } finally {
+    loading.value = false;
+  }
 });
 </script>
 

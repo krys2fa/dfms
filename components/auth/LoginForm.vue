@@ -19,14 +19,28 @@ const login = async () => {
     const response = await authStore.login(email.value, password.value);
     const data = response?.data;
 
-    if (data) {
-      console.log("User authenticated, navigating to dashboard...");
-      router.push("/dashboard");
+    if (data?.user) {
+      console.log("User authenticated:", data.user);
+
+      // Redirect based on role
+      switch (data.user.role) {
+        case "admin":
+          router.push("/admin-dashboard");
+          break;
+        case "superadmin":
+          router.push("/superadmin-dashboard");
+          break;
+        case "owner":
+          router.push("/owner-dashboard");
+          break;
+        default:
+          router.push("/dashboard");
+      }
     } else {
-      errorMessage.value = "Login failed. Please check your credentials.";
+      errorMessage.value = "Invalid credentials. Please try again.";
     }
   } catch (error: any) {
-    console.error("Unexpected error:", error);
+    console.error("Login error:", error);
     errorMessage.value = error.message || "An unexpected error occurred";
   } finally {
     loading.value = false;
@@ -37,21 +51,19 @@ const login = async () => {
 <template>
   <form @submit.prevent="login">
     <v-row class="d-flex mb-3">
-      <!-- Email Field -->
       <v-col cols="12">
         <v-label class="font-weight-bold mb-1">Email</v-label>
         <v-text-field
           v-model="email"
           type="email"
-          placeholder="Email"
+          placeholder="Enter your email"
           variant="outlined"
           color="primary"
-          :rules="[v => !!v || 'Email is required']"
+          :rules="[(v) => !!v || 'Email is required']"
           required
-        ></v-text-field>
+        />
       </v-col>
 
-      <!-- Password Field -->
       <v-col cols="12">
         <v-label class="font-weight-bold mb-1">Password</v-label>
         <v-text-field
@@ -60,27 +72,22 @@ const login = async () => {
           placeholder="Enter your password"
           variant="outlined"
           color="primary"
-          :rules="[v => !!v || 'Password is required']"
+          :rules="[(v) => !!v || 'Password is required']"
           required
-        ></v-text-field>
+        />
       </v-col>
 
-      <!-- Remember Me Checkbox -->
       <v-col cols="12" class="pt-0">
-        <div class="d-flex flex-wrap align-center ml-n2">
-          <v-checkbox v-model="checkbox" color="primary" hide-details>
-            <template v-slot:label>Remember this Device</template>
-          </v-checkbox>
-        </div>
+        <v-checkbox v-model="checkbox" color="primary" hide-details>
+          <template v-slot:label>Remember this device</template>
+        </v-checkbox>
       </v-col>
 
-      <!-- Error Message -->
       <v-col cols="12" v-if="errorMessage">
         <p class="text-red-500">{{ errorMessage }}</p>
       </v-col>
 
-      <!-- Submit Button -->
-      <v-col cols="12" class="pt-0">
+      <v-col cols="12">
         <v-btn
           type="submit"
           color="primary"

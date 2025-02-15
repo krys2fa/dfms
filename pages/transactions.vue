@@ -40,7 +40,7 @@ const filteredTransactions = computed(() => {
   // Search filter
   if (searchQuery.value) {
     transactions = transactions.filter((tx) =>
-      tx.vehicle_number.toLowerCase().includes(searchQuery.value.toLowerCase())
+      tx.license_plate.toLowerCase().includes(searchQuery.value.toLowerCase())
     );
   }
 
@@ -64,7 +64,7 @@ const openModal = (transaction = null) => {
     ? { ...transaction }
     : {
         id: null,
-        vehicle_number: "",
+        license_plate: "",
         amount: "",
         timestamp: new Date().toISOString(),
       };
@@ -72,11 +72,20 @@ const openModal = (transaction = null) => {
 };
 
 // 💾 Save transaction
-const saveTransaction = () => {
+// const saveTransaction = () => {
+//   if (editingTransaction.value.id) {
+//     transactionStore.updateTransaction(editingTransaction.value);
+//   } else {
+//     transactionStore.addTransaction(editingTransaction.value);
+//   }
+//   showModal.value = false;
+// };
+
+const saveTransaction = async () => {
   if (editingTransaction.value.id) {
-    transactionStore.updateTransaction(editingTransaction.value);
+    await transactionStore.updateTransaction(editingTransaction.value);
   } else {
-    transactionStore.addTransaction(editingTransaction.value);
+    await transactionStore.addTransaction(editingTransaction.value);
   }
   showModal.value = false;
 };
@@ -177,7 +186,7 @@ const exportTransactions = () => {
         <v-card-title>
           {{ editingTransaction?.id ? "Edit" : "Add" }} Transaction
         </v-card-title>
-        <v-card-text>
+        <!-- <v-card-text>
           <v-text-field
             v-model="editingTransaction.vehicle_number"
             label="Vehicle Number"
@@ -187,7 +196,59 @@ const exportTransactions = () => {
             type="number"
             label="Amount"
           />
-        </v-card-text>
+        </v-card-text> -->
+        <!-- <v-text-field
+          v-model="editingTransaction.attendant_id"
+          label="Attendant ID"
+        />
+        <v-text-field
+          v-model="editingTransaction.station_id"
+          label="Station ID"
+        />
+        <v-text-field
+          v-model="editingTransaction.amount"
+          type="number"
+          label="Amount"
+        />
+        <v-text-field
+          v-model="editingTransaction.liters_sold"
+          type="number"
+          label="Liters Sold"
+        />
+        <v-text-field
+          v-model="editingTransaction.fuel_type_id"
+          label="Fuel Type ID"
+        /> -->
+        <v-text-field
+          v-model="editingTransaction.attendant_id"
+          label="Attendant ID"
+          type="number"
+        />
+        <v-text-field
+          v-model="editingTransaction.station_id"
+          label="Station ID"
+          type="number"
+        />
+        <v-text-field
+          v-model="editingTransaction.amount"
+          label="Amount ($)"
+          type="number"
+        />
+        <v-text-field
+          v-model="editingTransaction.liters_sold"
+          label="Liters Sold"
+          type="number"
+        />
+        <v-text-field
+          v-model="editingTransaction.fuel_type_id"
+          label="Fuel Type ID"
+          type="number"
+        />
+        <v-text-field
+          v-model="editingTransaction.license_plate"
+          label="License Plate"
+          type="text"
+        />
         <v-card-actions>
           <v-btn color="gray" @click="showModal = false">
             <XIcon class="mr-2" /> Cancel
