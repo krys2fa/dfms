@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useTransactionStore } from "../stores/transactions";
+import { useAuthStore } from "../stores/auth";
+import { useRouter } from "vue-router";
 import {
   FileExportIcon,
   FilterIcon,
@@ -11,10 +13,10 @@ import {
   XIcon,
   CheckIcon,
 } from "vue-tabler-icons";
-import { useAuthStore } from "../stores/auth";
-import { useRouter } from "vue-router";
+
 const authStore = useAuthStore();
 const router = useRouter();
+const transactionStore = useTransactionStore();
 
 onMounted(async () => {
   const hasSession = await authStore.checkSession();
@@ -25,12 +27,11 @@ onMounted(async () => {
   await authStore.fetchUser();
 });
 
-const transactionStore = useTransactionStore();
-
+// State
 const searchQuery = ref("");
 const dateRange = ref({ start: "", end: "" });
 const showModal = ref(false);
-const editingTransaction = ref(null);
+const editingTransaction = ref<any>(null);
 
 // 🔎 Filtered transactions
 const filteredTransactions = computed(() => {
@@ -81,7 +82,7 @@ const saveTransaction = () => {
 };
 
 // ❌ Delete transaction
-const deleteTransaction = (id) => {
+const deleteTransaction = (id: number) => {
   transactionStore.deleteTransaction(id);
 };
 
@@ -173,12 +174,9 @@ const exportTransactions = () => {
     <!-- 📝 Transaction Modal -->
     <v-dialog v-model="showModal" max-width="400">
       <v-card>
-        <v-card-title
-          >{{
-            editingTransaction?.id ? "Edit" : "Add"
-          }}
-          Transaction</v-card-title
-        >
+        <v-card-title>
+          {{ editingTransaction?.id ? "Edit" : "Add" }} Transaction
+        </v-card-title>
         <v-card-text>
           <v-text-field
             v-model="editingTransaction.vehicle_number"
