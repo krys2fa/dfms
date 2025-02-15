@@ -1,10 +1,10 @@
-<script setup lang="ts">
-import { BellRingingIcon } from 'vue-tabler-icons';
-</script>
+<script setup lang="ts"></script>
 <template>
-    <v-btn icon variant="text"  class="custom-hover-primary ml-0 ml-md-5 text-muted">
-        <v-badge dot color="primary" offset-x="-5" offset-y="-3">
-            <BellRingingIcon stroke-width="1.5" size="22" />
-        </v-badge>
-    </v-btn>
+  <div>
+    <v-row align="center" justify="space-between" class="mb-4">
+      <v-col>
+        <h2 class="text-h5 font-weight-bold ml-5">Fuel Management Dashboard</h2>
+      </v-col>
+    </v-row>
+  </div>
 </template>

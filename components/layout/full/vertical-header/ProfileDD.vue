@@ -1,66 +1,83 @@
 <script setup lang="ts">
-import { UserIcon, MailIcon, ListCheckIcon } from "vue-tabler-icons"
+import {
+  UserIcon,
+  MailIcon,
+  ListCheckIcon,
+  BellRingingIcon,
+} from "vue-tabler-icons";
 import { useAuthStore } from "../../../../stores/auth";
+
 const authStore = useAuthStore();
 </script>
 
 <template>
-  <!-- ---------------------------------------------- -->
-  <!-- notifications DD -->
-  <!-- ---------------------------------------------- -->
-  <v-menu :close-on-content-click="false">
-    <template v-slot:activator="{ props }">
-      <v-btn
-        class="profileBtn custom-hover-primary"
-        variant="text"
-        v-bind="props"
-        icon
-      >
-        <v-avatar size="35">
-          <img src="/images/users/avatar-1.jpg" height="35" alt="user" />
-        </v-avatar>
-      </v-btn>
-    </template>
-    <v-sheet rounded="md" width="200" elevation="10" class="mt-2">
-      <v-list class="py-0" lines="one" density="compact">
-        <v-list-item value="item1" active-color="primary">
-          <template v-slot:prepend>
-            <UserIcon stroke-width="1.5" size="20" />
-          </template>
-          <v-list-item-title class="pl-4 text-body-1"
-            >My Profile</v-list-item-title
-          >
-        </v-list-item>
-        <v-list-item value="item2" active-color="primary">
-          <template v-slot:prepend>
-            <MailIcon stroke-width="1.5" size="20" />
-          </template>
-          <v-list-item-title class="pl-4 text-body-1"
-            >My Account</v-list-item-title
-          >
-        </v-list-item>
-        <v-list-item value="item3" active-color="primary">
-          <template v-slot:prepend>
-            <ListCheckIcon stroke-width="1.5" size="20" />
-          </template>
-          <v-list-item-title class="pl-4 text-body-1"
-            >My Task</v-list-item-title
-          >
-        </v-list-item>
-      </v-list>
-      <!-- <div class="pt-4 pb-4 px-5 text-center">
-                <v-btn to="/auth/login" color="primary" variant="outlined" block>Logout</v-btn>
-            </div> -->
-      <div class="pt-4 pb-4 px-5 text-center">
+  <v-row>
+    <!-- Notifications Button -->
+    <v-btn
+      icon
+      variant="text"
+      class="custom-hover-primary ml-0 ml-md-5 text-muted"
+    >
+      <v-badge dot color="primary" offset-x="-5" offset-y="-3">
+        <BellRingingIcon stroke-width="1.5" size="22" />
+      </v-badge>
+    </v-btn>
+    <!-- Profile Dropdown -->
+    <v-menu :close-on-content-click="false">
+      <template v-slot:activator="{ props }">
         <v-btn
-          color="primary"
-          variant="outlined"
-          block
-          @click="authStore.signOut()"
+          class="profileBtn custom-hover-primary"
+          variant="text"
+          v-bind="props"
+          icon
         >
-          Logout
+          <v-avatar size="40">
+            <img
+              src="/images/users/avatar-1.jpg"
+              height="40"
+              alt="User Avatar"
+            />
+          </v-avatar>
         </v-btn>
-      </div>
-    </v-sheet>
-  </v-menu>
+      </template>
+
+      <!-- Dropdown Menu -->
+      <v-sheet rounded="md" width="220" elevation="10" class="mt-2">
+        <v-list density="compact">
+          <v-list-item>
+            <template v-slot:prepend>
+              <UserIcon stroke-width="1.5" size="20" />
+            </template>
+            <v-list-item-title class="pl-4">My Profile</v-list-item-title>
+          </v-list-item>
+
+          <v-list-item>
+            <template v-slot:prepend>
+              <MailIcon stroke-width="1.5" size="20" />
+            </template>
+            <v-list-item-title class="pl-4">My Account</v-list-item-title>
+          </v-list-item>
+
+          <v-list-item>
+            <template v-slot:prepend>
+              <ListCheckIcon stroke-width="1.5" size="20" />
+            </template>
+            <v-list-item-title class="pl-4">My Tasks</v-list-item-title>
+          </v-list-item>
+        </v-list>
+
+        <!-- Logout Button -->
+        <div class="py-4 px-5 text-center">
+          <v-btn
+            color="primary"
+            variant="outlined"
+            block
+            @click="authStore.signOut()"
+          >
+            Logout
+          </v-btn>
+        </div>
+      </v-sheet>
+    </v-menu>
+  </v-row>
 </template>
