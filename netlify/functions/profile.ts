@@ -119,7 +119,7 @@ import jwt from "jsonwebtoken";
 import { Handler } from "@netlify/functions";
 import prisma from "../../server/utils/db";
 
-export const profileHandler: Handler = async (event) => {
+export const handler: Handler = async (event) => {
   const token = event.headers.authorization?.split(" ")[1];
   if (!token)
     return { statusCode: 401, body: JSON.stringify({ error: "Unauthorized" }) };

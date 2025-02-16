@@ -67,7 +67,7 @@ import jwt from "jsonwebtoken";
 import { Handler } from "@netlify/functions";
 import prisma from "../../server/utils/db";
 
-export const loginHandler: Handler = async (event) => {
+export const handler: Handler = async (event) => {
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,

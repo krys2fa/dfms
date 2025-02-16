@@ -12,3 +12,15 @@
 
 [[plugins]]
   package = "@netlify/plugin-functions-install-core"
+
+[[functions]]
+  name = "login"
+  path = "netlify/functions/login.ts"
+
+[[functions]]
+  name = "register"
+  path = "netlify/functions/register.ts"
+
+[[functions]]
+  name = "profile"
+  path = "netlify/functions/profile.ts"
