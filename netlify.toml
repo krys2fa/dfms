@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build"
+  command = "npm install && npx prisma generate && npm run build"
   publish = "dist"
 
 [functions]
@@ -9,3 +9,6 @@
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
+
+[[plugins]]
+  package = "@netlify/plugin-functions-install-core"
