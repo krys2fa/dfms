@@ -26,12 +26,7 @@ const register = async () => {
       name.value
     );
 
-    console.log("response", response);
-
-    return;
-
     if (response.user) {
-      console.log("User registered successfully as:", response.user);
       toast.success("User registered successfully as:", response.user);
 
       // Redirect user based on their role
@@ -56,7 +51,6 @@ const register = async () => {
       toast.error("Registration failed. Please try again.");
     }
   } catch (error: any) {
-    console.error("Registration error:", error);
     toast.error("Registration error:", error);
     errorMessage.value = error.message || "An unexpected error occurred";
   } finally {

@@ -21,7 +21,7 @@ const login = async () => {
     const data = await authStore.login(email.value, password.value);
 
     if (data?.user) {
-      console.log("User authenticated:", data.user);
+      toast.success("User authenticated:", data.user);
 
       // Redirect based on role
       switch (data.user.role) {
@@ -45,7 +45,7 @@ const login = async () => {
       toast.error("Invalid credentials. Please try again.");
     }
   } catch (error: any) {
-    console.error("Login error:", error);
+    toast.error("Login error:", error);
     errorMessage.value = error.message || "An unexpected error occurred";
   } finally {
     loading.value = false;

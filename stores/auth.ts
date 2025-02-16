@@ -77,8 +77,6 @@ export const useAuthStore = defineStore("auth", {
       name: string,
       stationId?: string
     ) {
-      console.log("role", role);
-      // return;
       try {
         const { data } = await axios.post(
           `${API_BASE_URL}${endpoint}/register`,
@@ -104,7 +102,6 @@ export const useAuthStore = defineStore("auth", {
 
         return data.user;
       } catch (error) {
-        console.error("Registration failed:", error);
         toast("Registration failed:", error);
         return {
           error: error.response?.data?.message || "Registration failed",
