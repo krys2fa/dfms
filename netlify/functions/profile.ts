@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import prisma from "../../server/utils/db";
 import "dotenv/config"; // Load environment variables
 
-export const profilehandler = async (event) => {
+export const handler = async (event) => {
   try {
     if (event.httpMethod !== "POST") {
       return {
