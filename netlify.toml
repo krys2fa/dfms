@@ -2,9 +2,6 @@
   command = "npm install --force && npx prisma generate && npm run build"
   publish = "dist"
 
-[functions]
-  directory = "netlify/functions"
-
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
