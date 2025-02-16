@@ -26,7 +26,7 @@ export const useAuthStore = defineStore("auth", {
         const token = localStorage.getItem("authToken");
         if (!token) return null;
 
-        const { data } = await axios.get(`${API_BASE_URL}/auth/profile`, {
+        const { data } = await axios.get(`${API_BASE_URL}${endpoint}/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
