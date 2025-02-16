@@ -1,6 +1,12 @@
 import { defineStore } from "pinia";
 import axios from "axios";
 
+const endpoint =
+  import.meta.env.VITE_API_BASE_URL ===
+  "https://digital-fuel-system.netlify.app/netlify/functions"
+    ? ""
+    : "/auth";
+
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   "https://digital-fuel-system.netlify.app/.netlify/functions";
@@ -36,7 +42,7 @@ export const useAuthStore = defineStore("auth", {
 
     async login(email: string, password: string) {
       try {
-        const { data } = await axios.post(`${API_BASE_URL}/auth/login`, {
+        const { data } = await axios.post(`${API_BASE_URL}${endpoint}/login`, {
           email,
           password,
         });
@@ -66,13 +72,16 @@ export const useAuthStore = defineStore("auth", {
       stationId?: string
     ) {
       try {
-        const { data } = await axios.post(`${API_BASE_URL}/auth/register`, {
-          email,
-          password,
-          name,
-          role,
-          stationId,
-        });
+        const { data } = await axios.post(
+          `${API_BASE_URL}${endpoint}/register`,
+          {
+            email,
+            password,
+            name,
+            role,
+            stationId,
+          }
+        );
 
         this.user = data.user;
         this.role = data.user.role;
