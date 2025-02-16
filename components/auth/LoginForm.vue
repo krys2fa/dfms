@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { useAuthStore } from "../../stores/auth";
 import { useRouter } from "vue-router";
+import { useToast } from "vue-toastification";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -10,6 +11,7 @@ const password = ref("");
 const errorMessage = ref("");
 const loading = ref(false);
 const checkbox = ref(false);
+const toast = useToast();
 
 const login = async () => {
   errorMessage.value = "";
@@ -40,6 +42,7 @@ const login = async () => {
       }
     } else {
       errorMessage.value = "Invalid credentials. Please try again.";
+      toast.error("Invalid credentials. Please try again.");
     }
   } catch (error: any) {
     console.error("Login error:", error);

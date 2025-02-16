@@ -1,6 +1,8 @@
 import { defineStore } from "pinia";
 import axios from "axios";
+import { useToast } from "vue-toastification";
 
+const toast = useToast();
 const endpoint =
   import.meta.env.VITE_API_BASE_URL !== "http://localhost:3000/api"
     ? ""
@@ -37,6 +39,7 @@ export const useAuthStore = defineStore("auth", {
         return data.user;
       } catch (error) {
         console.error("Error fetching user:", error);
+        toast("Error fetching user:", error);
         return null;
       }
     },
@@ -62,6 +65,7 @@ export const useAuthStore = defineStore("auth", {
         return data;
       } catch (error) {
         console.error("Login failed:", error);
+        toast("Login failed:", error);
         return { error: error.response?.data?.message || "Login failed" };
       }
     },
@@ -73,6 +77,8 @@ export const useAuthStore = defineStore("auth", {
       name: string,
       stationId?: string
     ) {
+      console.log("role", role);
+      // return;
       try {
         const { data } = await axios.post(
           `${API_BASE_URL}${endpoint}/register`,
@@ -85,6 +91,9 @@ export const useAuthStore = defineStore("auth", {
           }
         );
 
+        console.log("res", data);
+        return;
+
         this.user = data.user;
         this.role = data.user.role;
         this.token = data.token;
@@ -96,6 +105,7 @@ export const useAuthStore = defineStore("auth", {
         return data.user;
       } catch (error) {
         console.error("Registration failed:", error);
+        toast("Registration failed:", error);
         return {
           error: error.response?.data?.message || "Registration failed",
         };
