@@ -89,9 +89,6 @@ export const useAuthStore = defineStore("auth", {
           }
         );
 
-        console.log("res", data);
-        return;
-
         this.user = data.user;
         this.role = data.user.role;
         this.token = data.token;
