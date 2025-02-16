@@ -25,12 +25,17 @@ const register = async () => {
       role.value,
       name.value
     );
+    console.log("🚀 ~ register ~ response:", response);
 
-    if (response.user) {
+    // if (response.error) {
+    //   toast.error(response.error);
+    // }
+
+    if (!response.error) {
       toast.success("User registered successfully as:", response.user);
 
       // Redirect user based on their role
-      switch (response.user.role) {
+      switch (response.role) {
         case "admin":
           // router.push("/admin-dashboard");
           router.push("/dashboard");

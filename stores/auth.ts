@@ -89,6 +89,12 @@ export const useAuthStore = defineStore("auth", {
           }
         );
 
+        // if (data.error) {
+        //   toast.error(data.error);
+        // }
+
+        console.log("🚀 ~ data:", data);
+
         this.user = data.user;
         this.role = data.user.role;
         this.token = data.token;
