@@ -43,7 +43,7 @@ const sidebarItem: menu[] = [
   {
     title: "Fuel Types",
     icon: GasStationIcon,
-    to: "/transactions",
+    to: "/fueltypes",
   },
   {
     title: "Transactions",

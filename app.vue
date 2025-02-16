@@ -23,23 +23,20 @@ const isAuthenticated = computed(() => !!authStore.user);
 </script>
 
 <template>
+  <!-- Loading Spinner -->
   <div
     v-if="loading"
     class="flex items-center justify-center min-h-screen bg-gray-900"
   >
-    <!-- Animated Loading Spinner -->
     <div
       class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-opacity-75"
     ></div>
   </div>
 
-  <div v-else>
-    <!-- Show the app only when authenticated -->
-    <router-view v-if="isAuthenticated" />
-    <router-view
-      v-else-if="!isAuthenticated && $route.path.includes('/auth')"
-    />
-  </div>
+  <!-- Ensure Layout is applied -->
+  <NuxtLayout v-else>
+    <NuxtPage v-if="isAuthenticated || $route.path.includes('/auth')" />
+  </NuxtLayout>
 </template>
 
 <style>

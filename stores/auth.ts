@@ -1,5 +1,4 @@
 import { defineStore } from "pinia";
-import { useRouter } from "vue-router";
 import axios from "axios";
 
 export const useAuthStore = defineStore("auth", {
@@ -32,7 +31,6 @@ export const useAuthStore = defineStore("auth", {
     },
 
     async login(email: string, password: string) {
-      const router = useRouter();
       try {
         const { data } = await axios.post("/api/auth/login", {
           email,
@@ -49,11 +47,6 @@ export const useAuthStore = defineStore("auth", {
         localStorage.setItem("authToken", data.token);
         localStorage.setItem("userSession", JSON.stringify(data.user));
 
-        // Redirect based on role
-        // await router.push(
-        //   data.user.role === "admin" ? "/admin/dashboard" : "/dashboard"
-        // );
-
         return data;
       } catch (error) {
         console.error("Login failed:", error);
@@ -68,7 +61,6 @@ export const useAuthStore = defineStore("auth", {
       name: string,
       stationId?: string
     ) {
-      // const router = useRouter();
       try {
         const { data } = await axios.post("/api/auth/register", {
           email,
@@ -95,9 +87,7 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    async signOut() {
-      const router = useRouter();
-
+    async signOut(router) {
       this.user = null;
       this.role = null;
       this.token = null;
@@ -105,7 +95,7 @@ export const useAuthStore = defineStore("auth", {
       localStorage.removeItem("authToken");
       localStorage.removeItem("userSession");
 
-      await router.push("/auth/login");
+      router.push("/auth/login");
     },
 
     checkSession() {

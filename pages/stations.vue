@@ -4,7 +4,7 @@ import { useStationStore } from "../stores/stations";
 import { useOwnerStore } from "../stores/owners";
 import { useAuthStore } from "../stores/auth";
 import { useRouter } from "vue-router";
-import { useToast } from "vue-toastification"; // Import toast
+import { useToast } from "vue-toastification";
 
 import {
   FileExportIcon,
@@ -20,7 +20,7 @@ const authStore = useAuthStore();
 const router = useRouter();
 const stationStore = useStationStore();
 const ownerStore = useOwnerStore();
-const toast = useToast(); // Initialize toast
+const toast = useToast();
 
 onMounted(async () => {
   try {

@@ -6,8 +6,10 @@ import {
   BellRingingIcon,
 } from "vue-tabler-icons";
 import { useAuthStore } from "../../../../stores/auth";
+import { useRouter } from "vue-router";
 
 const authStore = useAuthStore();
+const router = useRouter();
 </script>
 
 <template>
@@ -72,7 +74,7 @@ const authStore = useAuthStore();
             color="primary"
             variant="outlined"
             block
-            @click="authStore.signOut()"
+            @click="authStore.signOut(router)"
           >
             Logout
           </v-btn>

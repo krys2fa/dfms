@@ -2,14 +2,8 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useTheme } from "vuetify";
-import { createClient } from "@supabase/supabase-js";
 import { FileExportIcon, CalendarIcon } from "vue-tabler-icons";
 import { useAuthStore } from "../stores/auth";
-
-// Supabase Client Setup
-const supabaseUrl = "https://your-supabase-url.supabase.co";
-const supabaseAnonKey = "your-anon-key";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Authentication & Routing
 const authStore = useAuthStore();
@@ -37,15 +31,14 @@ onMounted(async () => {
 
 // Fetch Transactions from Supabase
 const fetchTransactions = async () => {
-  const { data, error } = await supabase
-    .from("transactions")
-    .select("id, vehicle_number, amount, timestamp");
-
-  if (error) {
-    console.error("Error fetching transactions:", error);
-  } else {
-    transactions.value = data || [];
-  }
+  // const { data, error } = await supabase
+  //   .from("transactions")
+  //   .select("id, vehicle_number, amount, timestamp");
+  // if (error) {
+  //   console.error("Error fetching transactions:", error);
+  // } else {
+  //   transactions.value = data || [];
+  // }
 };
 
 // Date Range Filter

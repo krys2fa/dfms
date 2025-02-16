@@ -1,109 +1,125 @@
 import { defineStore } from "pinia";
-import { useNuxtApp } from "nuxt/app";
+import axios from "axios";
 
 export const useStationStore = defineStore("stations", {
   state: () => ({
-    stations: [] as any[],
+    stations: [] as any[], // List of stations
   }),
 
   actions: {
-    // Fetch all stations from the database
+    // Fetch all stations
     async fetchStations() {
-      const { $supabase } = useNuxtApp();
-      const { data, error } = await $supabase
-        .from("stations")
-        .select("*")
-        .order("id", { ascending: false });
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) throw new Error("No authentication token found.");
 
-      if (error) {
-        console.error("Error fetching stations:", error.message);
-        return;
+        const { data } = await axios.get("/api/stations", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        console.log("Stations fetched:", data);
+        this.stations = data || [];
+        return data;
+      } catch (error) {
+        console.error("Error fetching stations:", error);
+        return {
+          error: error.response?.data?.message || "Failed to fetch stations.",
+        };
       }
-
-      this.stations = data || [];
     },
 
-    // Add a new station with validation
-    async addStation(station: any) {
-      const { $supabase } = useNuxtApp();
+    // Add a new station
+    async addStation(station: {
+      name: string;
+      location: string;
+      owner_id: string;
+    }) {
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) throw new Error("No authentication token found.");
 
-      // ✅ Validate required fields
-      if (!station.name || !station.location || !station.owner_id) {
-        console.error(
-          "Error: All fields (name, location, owner) are required."
-        );
-        return { success: false, message: "All fields are required." };
+        // Validate required fields
+        if (!station.name || !station.location || !station.owner_id) {
+          throw new Error("All fields (name, location, owner) are required.");
+        }
+
+        const { data } = await axios.post("/api/stations", station, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        console.log("Station added:", data);
+        this.stations.unshift(data);
+        return { success: true, message: "Station added successfully." };
+      } catch (error) {
+        console.error("Error adding station:", error);
+        return {
+          error: error.response?.data?.message || "Failed to add station.",
+        };
       }
-
-      const newStation = {
-        name: station.name,
-        location: station.location,
-        owner_id: station.owner_id,
-      };
-
-      const { data, error } = await $supabase
-        .from("stations")
-        .insert([newStation])
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Error adding station:", error.message);
-        return { success: false, message: error.message };
-      }
-
-      this.stations.unshift(data);
-      return { success: true, message: "Station added successfully." };
     },
 
-    // Update a station's details
-    async updateStation(updatedStation: any) {
-      const { $supabase } = useNuxtApp();
+    // Update a station
+    async updateStation(updatedStation: {
+      id: number;
+      name: string;
+      location: string;
+      owner_id: string;
+    }) {
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) throw new Error("No authentication token found.");
 
-      // ✅ Validate required fields
-      if (
-        !updatedStation.name ||
-        !updatedStation.location ||
-        !updatedStation.owner_id
-      ) {
-        console.error(
-          "Error: All fields (name, location, owner) are required."
+        if (
+          !updatedStation.name ||
+          !updatedStation.location ||
+          !updatedStation.owner_id
+        ) {
+          throw new Error("All fields (name, location, owner) are required.");
+        }
+
+        await axios.put(`/api/stations/${updatedStation.id}`, updatedStation, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const index = this.stations.findIndex(
+          (s) => s.id === updatedStation.id
         );
-        return { success: false, message: "All fields are required." };
+        if (index !== -1) this.stations[index] = updatedStation;
+
+        console.log("Station updated:", updatedStation);
+        return { success: true, message: "Station updated successfully." };
+      } catch (error) {
+        console.error("Error updating station:", error);
+        return {
+          error: error.response?.data?.message || "Failed to update station.",
+        };
       }
-
-      const { error } = await $supabase
-        .from("stations")
-        .update({
-          name: updatedStation.name,
-          location: updatedStation.location,
-          owner_id: updatedStation.owner_id,
-        })
-        .eq("id", updatedStation.id);
-
-      if (error) {
-        console.error("Error updating station:", error.message);
-        return { success: false, message: error.message };
-      }
-
-      const index = this.stations.findIndex((s) => s.id === updatedStation.id);
-      if (index !== -1) this.stations[index] = updatedStation;
-
-      return { success: true, message: "Station updated successfully." };
     },
 
     // Delete a station
     async deleteStation(id: number) {
-      const { $supabase } = useNuxtApp();
-      const { error } = await $supabase.from("stations").delete().eq("id", id);
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) throw new Error("No authentication token found.");
 
-      if (error) {
-        console.error("Error deleting station:", error.message);
-        return { success: false, message: error.message };
+        await axios.delete(`/api/stations/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        this.stations = this.stations.filter((s) => s.id !== id);
+        console.log("Station deleted:", id);
+        return { success: true, message: "Station deleted successfully." };
+      } catch (error) {
+        console.error("Error deleting station:", error);
+        return {
+          error: error.response?.data?.message || "Failed to delete station.",
+        };
       }
-
-      this.stations = this.stations.filter((s) => s.id !== id);
-      return { success: true, message: "Station deleted successfully." };
     },
   },
 });
+
+// Enable Hot Module Replacement (HMR)
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useStationStore, import.meta.hot));
+}
