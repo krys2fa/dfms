@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import prisma from "../../utils/db.js"; // Ensure correct path for Netlify
+import prisma from "../../server/utils/db";
 import "dotenv/config"; // Load environment variables
 
 export const handler = async (event) => {
