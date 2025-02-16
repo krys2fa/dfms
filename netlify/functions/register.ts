@@ -155,6 +155,7 @@ export const handler: Handler = async (event) => {
       email,
       password: hashedPassword,
       name,
+      role,
       stationId: stationId || null,
     },
   });
