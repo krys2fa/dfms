@@ -3,7 +3,7 @@ import axios from "axios";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
-  "https://digital-fuel-system.netlify.app/api";
+  "https://digital-fuel-system.netlify.app/.netlify/functions";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
