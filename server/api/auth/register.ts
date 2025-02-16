@@ -20,7 +20,6 @@ export default defineEventHandler(async (event) => {
     data: {
       email,
       password: hashedPassword,
-      role,
       name,
       stationId: stationId || null,
     },

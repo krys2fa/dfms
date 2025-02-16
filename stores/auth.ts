@@ -16,9 +16,11 @@ export const useAuthStore = defineStore("auth", {
         const token = localStorage.getItem("authToken");
         if (!token) return null;
 
-        const { data } = await axios.get("/api/auth/me", {
+        const { data } = await axios.get("/api/auth/profile", {
           headers: { Authorization: `Bearer ${token}` },
         });
+
+        console.log("data", data);
 
         this.user = data.user;
         this.role = data.user.role;
@@ -37,6 +39,8 @@ export const useAuthStore = defineStore("auth", {
           password,
         });
 
+        console.log("log", data);
+
         // Store token and user data
         this.user = data.user;
         this.role = data.user.role;
@@ -46,11 +50,11 @@ export const useAuthStore = defineStore("auth", {
         localStorage.setItem("userSession", JSON.stringify(data.user));
 
         // Redirect based on role
-        await router.push(
-          data.user.role === "admin" ? "/admin/dashboard" : "/dashboard"
-        );
+        // await router.push(
+        //   data.user.role === "admin" ? "/admin/dashboard" : "/dashboard"
+        // );
 
-        return data.user;
+        return data;
       } catch (error) {
         console.error("Login failed:", error);
         return { error: error.response?.data?.message || "Login failed" };
@@ -64,13 +68,13 @@ export const useAuthStore = defineStore("auth", {
       name: string,
       stationId?: string
     ) {
-      const router = useRouter();
+      // const router = useRouter();
       try {
         const { data } = await axios.post("/api/auth/register", {
           email,
           password,
-          role,
           name,
+          role,
           stationId,
         });
 
@@ -82,7 +86,6 @@ export const useAuthStore = defineStore("auth", {
         localStorage.setItem("authToken", data.token);
         localStorage.setItem("userSession", JSON.stringify(data.user));
 
-        await router.push("/dashboard");
         return data.user;
       } catch (error) {
         console.error("Registration failed:", error);
@@ -115,3 +118,8 @@ export const useAuthStore = defineStore("auth", {
     },
   },
 });
+
+// Enable Hot Module Replacement (HMR)
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useAuthStore, import.meta.hot));
+}

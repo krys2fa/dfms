@@ -14,8 +14,11 @@ import {
   WalletIcon,
 } from "vue-tabler-icons";
 
+import { useToast } from "vue-toastification";
+
 const authStore = useAuthStore();
 const router = useRouter();
+const toast = useToast();
 
 // Get the current user's name
 const userName = computed(() => authStore.user?.name || "User");
@@ -49,6 +52,7 @@ const fetchDashboardData = async () => {
     users.value = await fetchUsers();
   } catch (error) {
     console.error("Error fetching dashboard data", error);
+    toast.error("Error fetching dashboard data", error);
   } finally {
     loading.value = false;
   }

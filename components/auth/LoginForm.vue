@@ -16,8 +16,7 @@ const login = async () => {
   loading.value = true;
 
   try {
-    const response = await authStore.login(email.value, password.value);
-    const data = response?.data;
+    const data = await authStore.login(email.value, password.value);
 
     if (data?.user) {
       console.log("User authenticated:", data.user);

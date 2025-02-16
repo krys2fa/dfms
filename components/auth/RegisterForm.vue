@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { useAuthStore } from "../../stores/auth";
 import { useRouter } from "vue-router";
+import { useToast } from "vue-toastification";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -11,6 +12,7 @@ const password = ref("");
 const role = ref("");
 const errorMessage = ref("");
 const loading = ref(false);
+const toast = useToast();
 
 const register = async () => {
   errorMessage.value = "";
@@ -20,15 +22,18 @@ const register = async () => {
     const response = await authStore.register(
       email.value,
       password.value,
-      name.value,
-      role.value
+      role.value,
+      name.value
     );
 
-    if (response?.user) {
-      console.log("User registered:", response.user);
+    console.log("response", response);
+
+    if (response) {
+      console.log("User registered successfully as:", response.user);
+      toast.success("User registered successfully as:", response.user);
 
       // Redirect user based on their role
-      switch (response.user.role) {
+      switch (response.role) {
         case "admin":
           router.push("/admin-dashboard");
           break;
@@ -46,6 +51,7 @@ const register = async () => {
     }
   } catch (error: any) {
     console.error("Registration error:", error);
+    toast.error("Registration error:", error);
     errorMessage.value = error.message || "An unexpected error occurred";
   } finally {
     loading.value = false;
@@ -60,7 +66,7 @@ const register = async () => {
         <v-label class="font-weight-bold mb-1">Name</v-label>
         <v-text-field
           v-model="name"
-          type="name"
+          type="text"
           placeholder="Enter your name"
           variant="outlined"
           color="primary"
