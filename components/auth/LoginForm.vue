@@ -24,13 +24,16 @@ const login = async () => {
       // Redirect based on role
       switch (data.user.role) {
         case "admin":
-          router.push("/admin-dashboard");
+          // router.push("/admin-dashboard");
+          router.push("/dashboard");
           break;
         case "superadmin":
-          router.push("/superadmin-dashboard");
+          // router.push("/superadmin-dashboard");
+          router.push("/dashboard");
           break;
         case "owner":
-          router.push("/owner-dashboard");
+          // router.push("/owner-dashboard");
+          router.push("/dashboard");
           break;
         default:
           router.push("/dashboard");
