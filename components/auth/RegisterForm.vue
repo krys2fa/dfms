@@ -30,7 +30,7 @@ const register = async () => {
       toast.success("User registered successfully as:", response.user);
 
       // Redirect user based on their role
-      switch (response.role) {
+      switch (response.user.role) {
         case "admin":
           // router.push("/admin-dashboard");
           router.push("/dashboard");
