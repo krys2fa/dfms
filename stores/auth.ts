@@ -1,6 +1,10 @@
 import { defineStore } from "pinia";
 import axios from "axios";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://digital-fuel-system.netlify.app/api";
+
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null as Record<string, any> | null, // User object
@@ -15,7 +19,7 @@ export const useAuthStore = defineStore("auth", {
         const token = localStorage.getItem("authToken");
         if (!token) return null;
 
-        const { data } = await axios.get("/api/auth/profile", {
+        const { data } = await axios.get(`${API_BASE_URL}/auth/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -32,7 +36,7 @@ export const useAuthStore = defineStore("auth", {
 
     async login(email: string, password: string) {
       try {
-        const { data } = await axios.post("/api/auth/login", {
+        const { data } = await axios.post(`${API_BASE_URL}/auth/login`, {
           email,
           password,
         });
@@ -62,7 +66,7 @@ export const useAuthStore = defineStore("auth", {
       stationId?: string
     ) {
       try {
-        const { data } = await axios.post("/api/auth/register", {
+        const { data } = await axios.post(`${API_BASE_URL}/auth/register`, {
           email,
           password,
           name,
