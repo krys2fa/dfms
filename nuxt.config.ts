@@ -1,10 +1,10 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
-import { defineNuxtConfig } from 'nuxt/config';
+import { defineNuxtConfig } from "nuxt/config";
 
 export default defineNuxtConfig({
-  ssr: false,
+  ssr: false, // Ensures the app runs in client-only mode
   typescript: {
-    shim: false
+    shim: false,
   },
   build: {
     transpile: ["vuetify"],
@@ -15,20 +15,27 @@ export default defineNuxtConfig({
     },
   },
   nitro: {
-    serveStatic: true,
+    serveStatic: true, // Serve static files
   },
   devServerHandlers: [],
-  hooks: {
-  },
+  hooks: {},
   devtools: { enabled: true }, // Enables Nuxt DevTools
-  // debug: true, // Enables debug mode
-  // logLevel: "info", // Use "debug" for even more details
-  modules: ["@pinia/nuxt"],
+  modules: [
+    "@pinia/nuxt", // State management
+    "@vueuse/nuxt", // Vue composables for better UX
+  ],
   compatibilityDate: "2024-11-01",
   runtimeConfig: {
     public: {
-      supabaseUrl: process.env.SUPABASE_URL || "",
-      supabaseAnonKey: process.env.SUPABASE_ANON_KEY || "",
+      apiBaseUrl: process.env.API_BASE_URL || "http://localhost:3000/api", // 🔥 Updated API base URL
+    },
+    private: {
+      databaseUrl: process.env.DATABASE_URL, // Prisma Database URL
+      pgHost: process.env.PGHOST,
+      pgDatabase: process.env.PGDATABASE,
+      pgUser: process.env.PGUSER,
+      pgPassword: process.env.PGPASSWORD,
+      pgPort: process.env.PGPORT || "5432",
     },
   },
 });

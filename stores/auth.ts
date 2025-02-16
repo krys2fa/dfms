@@ -1,119 +1,115 @@
 import { defineStore } from "pinia";
-import useAuth from "../composables/useAuth";
-import type { User } from "@supabase/supabase-js";
 import { useRouter } from "vue-router";
+import axios from "axios";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
-    user: null as User | null,
-    role: null as string | null, // Store user role
+    user: null as Record<string, any> | null, // User object
+    name: null as string | null,
+    role: null as string | null, // User role
+    token: null as string | null, // JWT token
   }),
 
   actions: {
     async fetchUser() {
-      const auth = useAuth();
-      const userProfile = await auth.getUserProfile();
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) return null;
 
-      if (userProfile) {
-        this.user = userProfile;
-        this.role = userProfile.role;
+        const { data } = await axios.get("/api/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-        // ✅ Store session data
-        if (typeof window !== "undefined") {
-          localStorage.setItem("userSession", JSON.stringify(this.user));
-          localStorage.setItem("userRole", this.role);
-        }
+        this.user = data.user;
+        this.role = data.user.role;
+        return data.user;
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        return null;
       }
-      return userProfile;
     },
 
     async login(email: string, password: string) {
-      const auth = useAuth();
       const router = useRouter();
-      const { data, role, error } = await auth.login(email, password);
+      try {
+        const { data } = await axios.post("/api/auth/login", {
+          email,
+          password,
+        });
 
-      if (error) return { error };
-
-      if (data) {
-        console.log("Login successful");
+        // Store token and user data
         this.user = data.user;
-        this.role = role;
+        this.role = data.user.role;
+        this.token = data.token;
 
-        // ✅ Store user session & role in localStorage
-        if (typeof window !== "undefined") {
-          localStorage.setItem("userSession", JSON.stringify(this.user));
-          localStorage.setItem("userRole", this.role);
-        }
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("userSession", JSON.stringify(data.user));
 
-        // Redirect user based on role
-        if (role === "admin" || role === "superadmin") {
-          router.push("/admin/dashboard");
-        } else {
-          router.push("/dashboard");
-        }
+        // Redirect based on role
+        await router.push(
+          data.user.role === "admin" ? "/admin/dashboard" : "/dashboard"
+        );
+
+        return data.user;
+      } catch (error) {
+        console.error("Login failed:", error);
+        return { error: error.response?.data?.message || "Login failed" };
       }
-      return { data, role };
     },
 
     async register(
       email: string,
       password: string,
+      role: string,
       name: string,
-      role: "user" | "admin" | "owner" | "superadmin",
       stationId?: string
     ) {
-      const auth = useAuth();
       const router = useRouter();
-      const { data, error } = await auth.register(
-        email,
-        password,
-        name,
-        role,
-        stationId
-      );
+      try {
+        const { data } = await axios.post("/api/auth/register", {
+          email,
+          password,
+          role,
+          name,
+          stationId,
+        });
 
-      if (error) return { error };
-
-      if (data) {
         this.user = data.user;
-        this.role = role;
+        this.role = data.user.role;
+        this.token = data.token;
+        this.name = data.user.name;
 
-        // ✅ Store session
-        if (typeof window !== "undefined") {
-          localStorage.setItem("userSession", JSON.stringify(this.user));
-          localStorage.setItem("userRole", this.role);
-        }
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("userSession", JSON.stringify(data.user));
 
-        router.push("/dashboard");
+        await router.push("/dashboard");
+        return data.user;
+      } catch (error) {
+        console.error("Registration failed:", error);
+        return {
+          error: error.response?.data?.message || "Registration failed",
+        };
       }
-      return { data };
     },
 
     async signOut() {
-      const auth = useAuth();
       const router = useRouter();
-      await auth.logout();
+
       this.user = null;
       this.role = null;
+      this.token = null;
 
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("userSession");
-        localStorage.removeItem("userRole");
-      }
-      router.push("/auth/login");
-      return true;
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("userSession");
+
+      await router.push("/auth/login");
     },
 
-    // ✅ Check if session exists
-    async checkSession() {
-      if (typeof window !== "undefined") {
-        const storedUser = localStorage.getItem("userSession");
-        const storedRole = localStorage.getItem("userRole");
-        if (storedUser) {
-          this.user = JSON.parse(storedUser);
-          this.role = storedRole;
-          return true;
-        }
+    checkSession() {
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        this.token = token;
+        return true;
       }
       return false;
     },

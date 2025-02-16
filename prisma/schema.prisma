@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(uuid())
+  createdAt  DateTime @default(now())
+  stationId  String?  @db.Uuid
+  authId     String?  @db.Uuid
+  email      String   @unique
+  password   String 
+  role       String
+  name       String
+  transactions Transaction[]
+}
+
+model Station {
+  id         String   @id @default(uuid())
+  ownerId    String?  @db.Uuid
+  createdAt  DateTime @default(now())
+  name       String
+  location   String
+  transactions Transaction[]
+  fuelTypes  StationFuelType[]
+
+  DailyReport DailyReport[]
+}
+
+model FuelType {
+  id         String   @id @default(uuid())
+  createdAt  DateTime @default(now())
+  name       String
+  transactions Transaction[]
+  stations   StationFuelType[]
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  stationId   String
+  attendantId String
+  fuelTypeId  String
+  amount      Float
+  litersSold  Float
+  timestamp   DateTime @default(now())
+  licensePlate String?
+
+  station    Station  @relation(fields: [stationId], references: [id])
+  attendant  User     @relation(fields: [attendantId], references: [id])
+  fuelType   FuelType @relation(fields: [fuelTypeId], references: [id])
+}
+
+model DailyReport {
+  id          String   @id @default(uuid())
+  stationId   String
+  totalSales  Float
+  totalLiters Float
+  reportDate  DateTime
+  createdAt   DateTime @default(now())
+
+  station     Station  @relation(fields: [stationId], references: [id])
+}
+
+model StationFuelType {
+  stationId  String
+  fuelTypeId String
+
+  station   Station  @relation(fields: [stationId], references: [id])
+  fuelType  FuelType @relation(fields: [fuelTypeId], references: [id])
+
+  @@id([stationId, fuelTypeId])
+}

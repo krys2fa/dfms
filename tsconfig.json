@@ -1,14 +1,21 @@
 {
   "compilerOptions": {
     "moduleResolution": "node",
-    "types": ["@nuxt/types", "@nuxt/schema", "@supabase/supabase-js"],
+    "module": "ESNext",
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM"],
+    "types": ["@nuxt/types", "@nuxt/schema", "pinia", "vue-router"],
     "paths": {
       "@/*": ["./"]
     },
     "strict": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": true
   },
-  "include": ["./**/*.ts", "./**/*.d.ts", "./**/*.vue"],
+  "include": ["./**/*.ts", "./**/*.d.ts", "./**/*.vue", "./nuxt.config.ts"],
+  "exclude": ["node_modules", "dist"],
   "extends": "./.nuxt/tsconfig.json"
 }
