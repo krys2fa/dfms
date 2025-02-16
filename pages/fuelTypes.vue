@@ -28,7 +28,7 @@ onMounted(async () => {
       return;
     }
     await authStore.fetchUser();
-    await fuelTypeStore.fetchFuelTypes();
+    // await fuelTypeStore.fetchFuelTypes();
   } catch (error) {
     toast.error("Error fetching data, please try again.");
   }

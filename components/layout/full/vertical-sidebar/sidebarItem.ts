@@ -12,6 +12,8 @@ import {
   SettingsIcon,
   GasStationIcon,
   BuildingStoreIcon,
+  UsersIcon,
+  FileUploadIcon,
 } from "vue-tabler-icons";
 
 export interface menu {
@@ -41,6 +43,11 @@ const sidebarItem: menu[] = [
     to: "/stations",
   },
   {
+    title: "Tanker Drivers",
+    icon: UsersIcon,
+    to: "/tankerdrivers",
+  },
+  {
     title: "Fuel Types",
     icon: GasStationIcon,
     to: "/fueltypes",
@@ -49,6 +56,11 @@ const sidebarItem: menu[] = [
     title: "Transactions",
     icon: ReportMoneyIcon,
     to: "/transactions",
+  },
+  {
+    title: "Documents",
+    icon: FileUploadIcon,
+    to: "/documents",
   },
   {
     title: "Reports",

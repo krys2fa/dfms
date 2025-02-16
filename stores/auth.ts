@@ -36,7 +36,7 @@ export const useAuthStore = defineStore("auth", {
 
         this.user = data.user;
         this.role = data.user.role;
-        return data.user;
+        return this.user;
       } catch (error) {
         console.error("Error fetching user:", error);
         toast("Error fetching user:", error);

@@ -30,8 +30,8 @@ onMounted(async () => {
       return;
     }
     await authStore.fetchUser();
-    await stationStore.fetchStations();
-    await ownerStore.fetchOwners();
+    // await stationStore.fetchStations();
+    // await ownerStore.fetchOwners();
   } catch (error) {
     toast.error("Error fetching data, please try again.");
   }

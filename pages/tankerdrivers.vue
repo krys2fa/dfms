@@ -1,0 +1,283 @@
+<script setup lang="ts">
+import { ref, computed, onMounted, reactive, watchEffect } from "vue";
+import { useRouter } from "vue-router";
+import {
+  FileExportIcon,
+  FilterIcon,
+  CalendarIcon,
+  EditIcon,
+  TrashIcon,
+  PlusIcon,
+  XIcon,
+  CheckIcon,
+} from "vue-tabler-icons";
+import { useAuthStore } from "../stores/auth";
+
+// State
+const searchQuery = ref<string>("");
+const dateRange = reactive({ start: "", end: "" });
+const showModal = ref<boolean>(false);
+const editingTransaction = ref<any>(null);
+
+// Stores & Router
+const authStore = useAuthStore();
+const router = useRouter();
+
+// ✅ Dummy data for tanker driver transactions
+// const transactions = reactive([
+//   {
+//     id: 1,
+//     driver_name: "John Doe",
+//     tanker_number: "TNX-001",
+//     liters_offloaded: 5000,
+//     fuel_type: "Diesel",
+//     timestamp: "2025-02-14T10:00:00",
+//   },
+//   {
+//     id: 2,
+//     driver_name: "Jane Smith",
+//     tanker_number: "TNX-002",
+//     liters_offloaded: 3200,
+//     fuel_type: "Petrol",
+//     timestamp: "2025-02-13T15:30:00",
+//   },
+//   {
+//     id: 3,
+//     driver_name: "Mark Johnson",
+//     tanker_number: "TNX-003",
+//     liters_offloaded: 4500,
+//     fuel_type: "Kerosene",
+//     timestamp: "2025-02-12T08:15:00",
+//   },
+// ]);
+const transactions = ref([
+  {
+    id: 1,
+    driver_name: "John Doe",
+    tanker_number: "TNX-001",
+    liters_offloaded: 5000,
+    fuel_type: "Diesel",
+    timestamp: "2025-02-14T10:00:00",
+  },
+  {
+    id: 2,
+    driver_name: "Jane Smith",
+    tanker_number: "TNX-002",
+    liters_offloaded: 3200,
+    fuel_type: "Petrol",
+    timestamp: "2025-02-13T15:30:00",
+  },
+  {
+    id: 3,
+    driver_name: "Mark Johnson",
+    tanker_number: "TNX-003",
+    liters_offloaded: 4500,
+    fuel_type: "Kerosene",
+    timestamp: "2025-02-12T08:15:00",
+  },
+]);
+
+// 🔍 Computed: Filtered transactions
+const filteredTransactions = computed(() => {
+  let filtered = transactions;
+
+  // Search filter
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    filtered = filtered.filter(
+      (tx) =>
+        tx.driver_name.toLowerCase().includes(query) ||
+        tx.tanker_number.toLowerCase().includes(query)
+    );
+  }
+
+  // Date range filter
+  if (dateRange.start && dateRange.end) {
+    filtered = filtered.filter((tx) => {
+      const date = new Date(tx.timestamp);
+      return (
+        date >= new Date(dateRange.start) && date <= new Date(dateRange.end)
+      );
+    });
+  }
+
+  return filtered;
+});
+
+// ✅ Debugging: Watch transactions to ensure they update properly
+watchEffect(() => {
+  console.log("Filtered Transactions:", filteredTransactions.value);
+});
+
+// 🔄 Open modal for adding/editing
+const openModal = (transaction = null) => {
+  editingTransaction.value = transaction
+    ? { ...transaction }
+    : {
+        id: null,
+        driver_name: "",
+        tanker_number: "",
+        liters_offloaded: "",
+        fuel_type: "",
+        timestamp: new Date().toISOString(),
+      };
+  showModal.value = true;
+};
+
+// 💾 Save transaction
+const saveTransaction = () => {
+  if (editingTransaction.value.id) {
+    // Update existing transaction
+    const index = transactions.findIndex(
+      (tx) => tx.id === editingTransaction.value.id
+    );
+    if (index !== -1) {
+      transactions[index] = { ...editingTransaction.value };
+    }
+  } else {
+    // Add new transaction
+    editingTransaction.value.id = transactions.length + 1;
+    transactions.push({ ...editingTransaction.value });
+  }
+  showModal.value = false;
+};
+
+// ❌ Delete transaction
+const deleteTransaction = (id: number) => {
+  const index = transactions.findIndex((tx) => tx.id === id);
+  if (index !== -1) {
+    transactions.splice(index, 1);
+  }
+};
+
+// 📤 Export transactions (Mock)
+const exportTransactions = () => {
+  console.log("Exporting transactions:", transactions);
+  alert("Transactions exported (mock function).");
+};
+
+// 🔄 Fetch session on mount
+onMounted(async () => {
+  console.log("Dummy data loaded", transactions);
+  const hasSession = await authStore.checkSession();
+  if (!hasSession) {
+    router.push("/auth/login");
+    return;
+  }
+  await authStore.fetchUser();
+});
+</script>
+
+<template>
+  <v-container>
+    <v-row class="align-center mb-4">
+      <!-- 🔎 Search Bar -->
+      <v-col cols="6">
+        <v-text-field
+          v-model="searchQuery"
+          label="Search Document"
+          prepend-inner-icon="mdi-magnify"
+        />
+      </v-col>
+
+      <!-- 📅 Date Filters -->
+      <v-col cols="3">
+        <v-text-field v-model="dateRange.start" type="date" label="Start Date">
+          <template v-slot:prepend-inner><CalendarIcon /></template>
+        </v-text-field>
+      </v-col>
+      <v-col cols="3">
+        <v-text-field v-model="dateRange.end" type="date" label="End Date">
+          <template v-slot:prepend-inner><CalendarIcon /></template>
+        </v-text-field>
+      </v-col>
+    </v-row>
+
+    <v-row class="justify-end mb-4">
+      <v-btn color="green" class="mr-2" @click="openModal()">
+        <PlusIcon class="mr-2" /> Add Record
+      </v-btn>
+      <v-btn color="blue" @click="exportTransactions">
+        <FileExportIcon class="mr-2" /> Export
+      </v-btn>
+    </v-row>
+
+    <!-- 📋 Filtered Transactions Table -->
+    <v-card class="mb-6">
+      <v-card-title>
+        <FilterIcon class="mr-2" /> Filtered Records
+      </v-card-title>
+      <v-data-table
+        :headers="[
+          { text: 'Driver Name', value: 'driver_name' },
+          { text: 'Tanker Number', value: 'tanker_number' },
+          { text: 'Liters Offloaded', value: 'liters_offloaded' },
+          { text: 'Fuel Type', value: 'fuel_type' },
+          { text: 'Date', value: 'timestamp' },
+          { text: 'Actions', value: 'actions', sortable: false },
+        ]"
+        :items="transactions"
+        item-value="id"
+        class="elevation-1"
+      >
+        <template v-slot:item.timestamp="{ item }">
+          {{ new Date(item.timestamp).toLocaleString() }}
+        </template>
+
+        <template v-slot:item.actions="{ item }">
+          <v-btn small icon color="blue" @click="openModal(item)">
+            <EditIcon />
+          </v-btn>
+          <v-btn small icon color="red" @click="deleteTransaction(item.id)">
+            <TrashIcon />
+          </v-btn>
+        </template>
+
+        <template v-slot:no-data>
+          <v-alert type="warning"> No tankers found! </v-alert>
+        </template>
+      </v-data-table>
+    </v-card>
+
+    <!-- 📝 Transaction Modal -->
+    <v-dialog v-model="showModal" max-width="400">
+      <v-card>
+        <v-card-title>
+          {{ editingTransaction?.id ? "Edit" : "Add" }} Record
+        </v-card-title>
+        <v-card-text>
+          <v-text-field
+            v-model="editingTransaction.driver_name"
+            label="Driver Name"
+          />
+          <v-text-field
+            v-model="editingTransaction.tanker_number"
+            label="Tanker Number"
+          />
+          <v-text-field
+            v-model="editingTransaction.liters_offloaded"
+            type="number"
+            label="Liters Offloaded"
+          />
+          <v-text-field
+            v-model="editingTransaction.fuel_type"
+            label="Fuel Type"
+          />
+          <v-text-field
+            v-model="editingTransaction.timestamp"
+            type="datetime-local"
+            label="Date"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="gray" @click="showModal = false"
+            ><XIcon class="mr-2" /> Cancel</v-btn
+          >
+          <v-btn color="blue" @click="saveTransaction"
+            ><CheckIcon class="mr-2" /> Save</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-container>
+</template>
