@@ -2,10 +2,11 @@ import { defineStore } from "pinia";
 import axios from "axios";
 
 const endpoint =
-  import.meta.env.VITE_API_BASE_URL ===
-  "https://digital-fuel-system.netlify.app/netlify/functions"
+  import.meta.env.VITE_API_BASE_URL !== "http://localhost:3000/api"
     ? ""
     : "/auth";
+
+console.log("evn", import.meta.env.VITE_API_BASE_URL);
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
@@ -47,7 +48,8 @@ export const useAuthStore = defineStore("auth", {
           password,
         });
 
-        console.log("log", data);
+        console.log("loge", data);
+        console.log("evn", import.meta.env.VITE_API_BASE_URL);
 
         // Store token and user data
         this.user = data.user;
