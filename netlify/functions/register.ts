@@ -139,7 +139,9 @@ export const handler: Handler = async (event) => {
     };
   }
 
-  const { email, password, name, stationId } = JSON.parse(event.body || "{}");
+  const { email, password, name, role, stationId } = JSON.parse(
+    event.body || "{}"
+  );
 
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) {
