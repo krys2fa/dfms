@@ -25,31 +25,7 @@ const router = useRouter();
 
 // ✅ Dummy data for tanker driver transactions
 // const transactions = reactive([
-//   {
-//     id: 1,
-//     driver_name: "John Doe",
-//     tanker_number: "TNX-001",
-//     liters_offloaded: 5000,
-//     fuel_type: "Diesel",
-//     timestamp: "2025-02-14T10:00:00",
-//   },
-//   {
-//     id: 2,
-//     driver_name: "Jane Smith",
-//     tanker_number: "TNX-002",
-//     liters_offloaded: 3200,
-//     fuel_type: "Petrol",
-//     timestamp: "2025-02-13T15:30:00",
-//   },
-//   {
-//     id: 3,
-//     driver_name: "Mark Johnson",
-//     tanker_number: "TNX-003",
-//     liters_offloaded: 4500,
-//     fuel_type: "Kerosene",
-//     timestamp: "2025-02-12T08:15:00",
-//   },
-// ]);
+//
 const transactions = ref([
   {
     id: 1,
@@ -175,7 +151,7 @@ onMounted(async () => {
       <v-col cols="6">
         <v-text-field
           v-model="searchQuery"
-          label="Search Document"
+          label="Search Tanker Driver"
           prepend-inner-icon="mdi-magnify"
         />
       </v-col>
@@ -195,7 +171,7 @@ onMounted(async () => {
 
     <v-row class="justify-end mb-4">
       <v-btn color="green" class="mr-2" @click="openModal()">
-        <PlusIcon class="mr-2" /> Add Record
+        <PlusIcon class="mr-2" /> Add Tanker Driver
       </v-btn>
       <v-btn color="blue" @click="exportTransactions">
         <FileExportIcon class="mr-2" /> Export
@@ -205,7 +181,7 @@ onMounted(async () => {
     <!-- 📋 Filtered Transactions Table -->
     <v-card class="mb-6">
       <v-card-title>
-        <FilterIcon class="mr-2" /> Filtered Records
+        <FilterIcon class="mr-2" /> Filtered Tanker Drivers
       </v-card-title>
       <v-data-table
         :headers="[

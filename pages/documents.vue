@@ -10,6 +10,7 @@ import {
   PlusIcon,
   XIcon,
   CheckIcon,
+  UploadIcon,
 } from "vue-tabler-icons";
 import { useAuthStore } from "../stores/auth";
 
@@ -18,10 +19,10 @@ const searchQuery = ref("");
 const dateRange = ref({ start: "", end: "" });
 const showModal = ref(false);
 const editingTransaction = ref<any>(null);
+const selectedFile = ref<File | null>(null);
 
 // Stores & Router
 const authStore = useAuthStore();
-// const tankerStore = useTankerStore();
 const router = useRouter();
 
 // Dummy data for tanker driver transactions
@@ -33,6 +34,7 @@ const transactions = ref([
     liters_offloaded: 5000,
     fuel_type: "Diesel",
     timestamp: "2025-02-14T10:00:00",
+    document: null,
   },
   {
     id: 2,
@@ -41,6 +43,7 @@ const transactions = ref([
     liters_offloaded: 3200,
     fuel_type: "Petrol",
     timestamp: "2025-02-13T15:30:00",
+    document: null,
   },
   {
     id: 3,
@@ -49,6 +52,7 @@ const transactions = ref([
     liters_offloaded: 4500,
     fuel_type: "Kerosene",
     timestamp: "2025-02-12T08:15:00",
+    document: null,
   },
 ]);
 
@@ -60,11 +64,10 @@ onMounted(async () => {
     return;
   }
   await authStore.fetchUser();
-  // await tankerStore.fetchTankers();
 });
 
 // 🔎 Filtered transactions
-const filteredTransactions = computed(() => {
+const filteredDocuments = computed(() => {
   let filtered = transactions.value;
 
   // Search filter (by driver name or tanker number)
@@ -103,12 +106,26 @@ const openModal = (transaction = null) => {
         liters_offloaded: "",
         fuel_type: "",
         timestamp: new Date().toISOString(),
+        document: null,
       };
+  selectedFile.value = null;
   showModal.value = true;
+};
+
+// 📤 Handle File Upload
+const handleFileUpload = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  if (input.files && input.files[0]) {
+    selectedFile.value = input.files[0];
+  }
 };
 
 // 💾 Save transaction
 const saveTransaction = () => {
+  if (selectedFile.value) {
+    editingTransaction.value.document = selectedFile.value.name;
+  }
+
   if (editingTransaction.value.id) {
     // Update existing
     const index = transactions.value.findIndex(
@@ -164,7 +181,7 @@ const exportTransactions = () => {
 
     <v-row class="justify-end mb-4">
       <v-btn color="green" class="mr-2" @click="openModal()">
-        <PlusIcon class="mr-2" /> Add Record
+        <PlusIcon class="mr-2" /> Upload Document
       </v-btn>
       <v-btn color="blue" @click="exportTransactions">
         <FileExportIcon class="mr-2" /> Export
@@ -174,7 +191,7 @@ const exportTransactions = () => {
     <!-- 📋 Filtered Transactions Table -->
     <v-card class="mb-6">
       <v-card-title>
-        <FilterIcon class="mr-2" /> Filtered Records
+        <FilterIcon class="mr-2" /> Filtered Documents
       </v-card-title>
       <v-data-table
         :headers="[
@@ -183,14 +200,26 @@ const exportTransactions = () => {
           { text: 'Liters Offloaded', value: 'liters_offloaded' },
           { text: 'Fuel Type', value: 'fuel_type' },
           { text: 'Date', value: 'timestamp' },
+          { text: 'Document', value: 'document' },
           { text: 'Actions', value: 'actions', sortable: false },
         ]"
-        :items="filteredTransactions"
+        :items="filteredDocuments"
         item-value="id"
         class="elevation-1"
       >
         <template v-slot:item.timestamp="{ item }">
           {{ new Date(item.timestamp).toLocaleString() }}
+        </template>
+
+        <template v-slot:item.document="{ item }">
+          <a
+            v-if="item.document"
+            :href="`/uploads/${item.document}`"
+            target="_blank"
+          >
+            {{ item.document }}
+          </a>
+          <span v-else>No document</span>
         </template>
 
         <template v-slot:item.actions="{ item }">
@@ -212,35 +241,31 @@ const exportTransactions = () => {
         </v-card-title>
         <v-card-text>
           <v-text-field
-            v-model="editingTransaction.driver_name"
-            label="Driver Name"
+            v-model="editingTransaction.document_number"
+            label="Receipt/Voucher/Waybill Number"
           />
-          <v-text-field
-            v-model="editingTransaction.tanker_number"
-            label="Tanker Number"
+          <v-select
+            v-model="editingTransaction.document_type"
+            label="Document Type"
+            :items="['Waybill', 'Receipt', 'Voucher']"
+            outlined
+            dense
           />
-          <v-text-field
-            v-model="editingTransaction.liters_offloaded"
-            type="number"
-            label="Liters Offloaded"
-          />
-          <v-text-field
-            v-model="editingTransaction.fuel_type"
-            label="Fuel Type"
-          />
+
           <v-text-field
             v-model="editingTransaction.timestamp"
             type="datetime-local"
             label="Date"
           />
+          <v-file-input label="Upload Document" @change="handleFileUpload" />
         </v-card-text>
         <v-card-actions>
-          <v-btn color="gray" @click="showModal = false">
-            <XIcon class="mr-2" /> Cancel
-          </v-btn>
-          <v-btn color="blue" @click="saveTransaction">
-            <CheckIcon class="mr-2" /> Save
-          </v-btn>
+          <v-btn color="gray" @click="showModal = false"
+            ><XIcon class="mr-2" /> Cancel</v-btn
+          >
+          <v-btn color="blue" @click="saveTransaction"
+            ><CheckIcon class="mr-2" /> Save</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>
