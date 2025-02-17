@@ -1,149 +1,7 @@
-<script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import { useStationStore } from "../stores/stations";
-import { useOwnerStore } from "../stores/owners";
-import { useAuthStore } from "../stores/auth";
-import { useRouter } from "vue-router";
-import { useToast } from "vue-toastification";
-
-import {
-  FileExportIcon,
-  FilterIcon,
-  EditIcon,
-  TrashIcon,
-  PlusIcon,
-  XIcon,
-  CheckIcon,
-} from "vue-tabler-icons";
-
-// Stores & Dependencies
-const authStore = useAuthStore();
-const router = useRouter();
-const stationStore = useStationStore();
-const ownerStore = useOwnerStore();
-const toast = useToast();
-
-onMounted(async () => {
-  try {
-    const hasSession = await authStore.checkSession();
-    if (!hasSession) {
-      router.push("/auth/login");
-      return;
-    }
-    await authStore.fetchUser();
-    await stationStore.fetchStations();
-    // await ownerStore.fetchOwners(); // Ensure owners are loaded
-  } catch (error) {
-    toast.error("Error fetching data, please try again.");
-  }
-});
-
-// State
-const searchQuery = ref("");
-const showModal = ref(false);
-const editingStation = ref<any>(null);
-const submitted = ref(false);
-
-// 🔎 Filtered stations
-const filteredStations = computed(() => {
-  let stations = stationStore.stations;
-  if (searchQuery.value) {
-    stations = stations.filter((station) =>
-      station.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    );
-  }
-  return stations;
-});
-
-// 🔄 Open modal for adding/editing
-const openModal = (station = null) => {
-  editingStation.value = station
-    ? { ...station }
-    : {
-        id: null,
-        name: "",
-        location: "",
-        ownerId: null, // Fixed property name
-      };
-  submitted.value = false;
-  showModal.value = true;
-};
-
-// ❌ Validate form fields
-const isFormInvalid = computed(() => {
-  return (
-    !editingStation.value.name ||
-    !editingStation.value.location ||
-    !editingStation.value.ownerId // Fixed property name
-  );
-});
-
-// 📋 Format stations to include owner names
-const formattedStations = computed(() =>
-  stationStore.stations.map((station) => ({
-    ...station,
-    owner:
-      ownerStore.owners.find((o) => o.id === station.ownerId)?.name ||
-      "Unknown",
-  }))
-);
-
-// 💾 Save station with validation
-const saveStation = async () => {
-  submitted.value = true;
-
-  if (isFormInvalid.value) {
-    toast.warning("Please fill in all required fields.");
-    return;
-  }
-
-  try {
-    if (editingStation.value.id) {
-      await stationStore.updateStation(editingStation.value);
-      toast.success("Station updated successfully!");
-    } else {
-      await stationStore.addStation(editingStation.value);
-      toast.success("Station added successfully!");
-    }
-    showModal.value = false;
-  } catch (error) {
-    toast.error("Error saving station. Please try again.");
-  }
-};
-
-// ❌ Delete station
-const deleteStation = async (id: string) => {
-  try {
-    await stationStore.deleteStation(id);
-    toast.success("Station deleted successfully!");
-  } catch (error) {
-    toast.error("Error deleting station. Please try again.");
-  }
-};
-
-// 📤 Export stations (Mock)
-const exportStations = () => {
-  console.log("Exporting stations:", stationStore.stations);
-  toast.info("Stations exported (mock function).");
-};
-</script>
-
 <template>
   <v-container>
-    <!-- 🔍 Search -->
-    <v-row class="align-center mb-4">
-      <v-col cols="6">
-        <v-text-field
-          v-model="searchQuery"
-          label="Search Station Name"
-          prepend-inner-icon="mdi-magnify"
-        />
-      </v-col>
-    </v-row>
-
-    <!-- ➕ Add & Export Buttons -->
     <v-row class="justify-end mb-4">
-      <v-btn color="green" class="mr-2" @click="openModal()">
+      <v-btn color="green" class="mr-2" @click="openModal">
         <PlusIcon class="mr-2" /> Add Station
       </v-btn>
       <v-btn color="blue" @click="exportStations">
@@ -153,103 +11,162 @@ const exportStations = () => {
 
     <!-- 📋 Filtered Stations Table -->
     <v-card class="mb-6">
-      <v-card-title>
-        <FilterIcon class="mr-2" /> Filtered Stations
-      </v-card-title>
-      <v-data-table
-        :headers="[
-          { text: 'Station Name', value: 'name' },
-          { text: 'Location', value: 'location' },
-          { text: 'Owner', value: 'owner' },
-          { text: 'Actions', value: 'actions', sortable: false },
-        ]"
-        :items="formattedStations"
-        class="elevation-1"
-        item-value="id"
+      <v-card-title> <FilterIcon class="mr-2" /> Stations </v-card-title>
+      <vue-good-table
+        :columns="columns"
+        :rows="filteredStations"
+        :search-options="{ enabled: true }"
+        :pagination-options="{
+          enabled: true,
+          perPage: 5,
+        }"
       >
-        <template v-slot:item.actions="{ item }">
-          <v-btn small icon color="blue" @click="openModal(item)">
-            <EditIcon />
-          </v-btn>
-          <v-btn small icon color="red" @click="deleteStation(item.id)">
-            <TrashIcon />
-          </v-btn>
+        <template v-slot:table-row="{ column, row }">
+          <span v-if="column.field === 'actions'">
+            <v-btn small icon color="blue" @click="openModal(row)">
+              <EditIcon />
+            </v-btn>
+            <v-btn small icon color="red" @click="deleteStation(row.id)">
+              <TrashIcon />
+            </v-btn>
+          </span>
         </template>
-      </v-data-table>
+      </vue-good-table>
     </v-card>
 
-    <!-- 📜 Full Stations Table -->
-    <v-card>
-      <v-card-title>
-        <FileExportIcon class="mr-2" /> All Stations
-      </v-card-title>
-      <v-data-table
-        :headers="[
-          { text: 'Station Name', value: 'name' },
-          { text: 'Location', value: 'location' },
-          { text: 'Owner', value: 'owner' },
-          { text: 'Actions', value: 'actions', sortable: false },
-        ]"
-        :items="stations"
-        class="elevation-1"
-        item-value="id"
-      >
-        <template v-slot:item.actions="{ item }">
-          <v-btn small icon color="blue" @click="openModal(item)">
-            <EditIcon />
-          </v-btn>
-          <v-btn small icon color="red" @click="deleteStation(item.id)">
-            <TrashIcon />
-          </v-btn>
-        </template>
-      </v-data-table>
-    </v-card>
-
-    <!-- 📝 Station Modal -->
-    <v-dialog v-model="showModal" max-width="400">
+    <!-- Modal Component -->
+    <v-dialog v-model="showModal" max-width="600px">
       <v-card>
         <v-card-title>
-          {{ editingStation?.id ? "Edit" : "Add" }} Station
+          <span v-if="editingStation.id">Edit Station</span>
+          <span v-else>Add Station</span>
         </v-card-title>
         <v-card-text>
-          <v-text-field v-model="editingStation.name" label="Station Name" />
-          <p v-if="submitted && !editingStation.name" class="error">
-            Name is required
-          </p>
-
-          <v-text-field v-model="editingStation.location" label="Location" />
-          <p v-if="submitted && !editingStation.location" class="error">
-            Location is required
-          </p>
-
-          <v-select
-            v-model="editingStation.ownerId"
-            :items="ownerStore.owners"
-            item-title="name"
-            item-value="id"
-            label="Owner"
-          />
-          <p v-if="submitted && !editingStation.ownerId" class="error">
-            Owner is required
-          </p>
+          <v-form>
+            <v-text-field
+              v-model="editingStation.name"
+              label="Station Name"
+              required
+            />
+            <v-text-field
+              v-model="editingStation.location"
+              label="Location"
+              required
+            />
+            <v-text-field
+              v-model="editingStation.owner"
+              label="Owner"
+              required
+            />
+          </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-btn color="gray" @click="showModal = false">
-            <XIcon class="mr-2" /> Cancel
-          </v-btn>
-          <v-btn color="blue" @click="saveStation" :disabled="isFormInvalid">
-            <CheckIcon class="mr-2" /> Save
-          </v-btn>
+          <v-btn color="green" @click="saveStation">Save</v-btn>
+          <v-btn color="red" @click="showModal = false">Cancel</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
   </v-container>
 </template>
 
-<style scoped>
-.error {
-  color: red;
-  font-size: 14px;
-  margin-top: -10px;
-}
-</style>
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { useToast } from "vue-toastification";
+import {
+  FileExportIcon,
+  FilterIcon,
+  EditIcon,
+  TrashIcon,
+  PlusIcon,
+} from "vue-tabler-icons";
+
+const toast = useToast();
+
+// State
+const searchQuery = ref("");
+const showModal = ref(false);
+const editingStation = ref<any>(null);
+const submitted = ref(false);
+
+// Dummy data for stations
+const stations = ref([
+  { id: 1, name: "Alpha Fuel Station", location: "Accra", owner: "John Doe" },
+  { id: 2, name: "Beta Gas Station", location: "Kumasi", owner: "Jane Smith" },
+  {
+    id: 3,
+    name: "Gamma Oil Depot",
+    location: "Takoradi",
+    owner: "Mark Johnson",
+  },
+  { id: 4, name: "Delta Fuel Station", location: "Tema", owner: "Alice Brown" },
+  {
+    id: 5,
+    name: "Epsilon Gas Station",
+    location: "Cape Coast",
+    owner: "Bob White",
+  },
+  { id: 6, name: "Zeta Oil Depot", location: "Ho", owner: "Charlie Black" },
+]);
+
+// Table columns
+const columns = ref([
+  { label: "Station Name", field: "name" },
+  { label: "Location", field: "location" },
+  { label: "Owner", field: "owner" },
+  { label: "Actions", field: "actions", sortable: false },
+]);
+
+// Filtered stations
+const filteredStations = computed(() => {
+  let filtered = stations.value;
+  if (searchQuery.value) {
+    filtered = filtered.filter((station) =>
+      station.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+    );
+  }
+  return filtered;
+});
+
+// Open modal for adding/editing
+const openModal = (station = null) => {
+  editingStation.value = station
+    ? { ...station }
+    : {
+        id: null,
+        name: "",
+        location: "",
+        owner: "",
+      };
+  submitted.value = false;
+  showModal.value = true;
+};
+
+// Save station
+const saveStation = () => {
+  if (editingStation.value.id) {
+    const index = stations.value.findIndex(
+      (s) => s.id === editingStation.value.id
+    );
+    if (index !== -1) {
+      stations.value[index] = { ...editingStation.value };
+    }
+  } else {
+    editingStation.value.id = stations.value.length + 1;
+    stations.value.push({ ...editingStation.value });
+  }
+  showModal.value = false;
+  toast.success("Station saved successfully!");
+};
+
+// Export stations (Mock)
+const exportStations = () => {
+  console.log("Exporting stations:", stations.value);
+  toast.info("Stations exported (mock function).");
+};
+
+// Delete station
+const deleteStation = (id: number) => {
+  stations.value = stations.value.filter((s) => s.id !== id);
+  toast.success("Station deleted successfully!");
+};
+</script>

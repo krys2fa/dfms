@@ -38,4 +38,5 @@ export default defineNuxtConfig({
       pgPort: process.env.PGPORT || "5432",
     },
   },
+  plugins: ["~/plugins/vue-good-table.js"],
 });

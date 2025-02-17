@@ -1,259 +1,223 @@
-<script setup lang="ts">
-import { ref, computed, onMounted, reactive, watchEffect } from "vue";
-import { useRouter } from "vue-router";
-import {
-  FileExportIcon,
-  FilterIcon,
-  CalendarIcon,
-  EditIcon,
-  TrashIcon,
-  PlusIcon,
-  XIcon,
-  CheckIcon,
-} from "vue-tabler-icons";
-import { useAuthStore } from "../stores/auth";
-
-// State
-const searchQuery = ref<string>("");
-const dateRange = reactive({ start: "", end: "" });
-const showModal = ref<boolean>(false);
-const editingTransaction = ref<any>(null);
-
-// Stores & Router
-const authStore = useAuthStore();
-const router = useRouter();
-
-// ✅ Dummy data for tanker driver transactions
-// const transactions = reactive([
-//
-const transactions = ref([
-  {
-    id: 1,
-    driver_name: "John Doe",
-    tanker_number: "TNX-001",
-    liters_offloaded: 5000,
-    fuel_type: "Diesel",
-    timestamp: "2025-02-14T10:00:00",
-  },
-  {
-    id: 2,
-    driver_name: "Jane Smith",
-    tanker_number: "TNX-002",
-    liters_offloaded: 3200,
-    fuel_type: "Petrol",
-    timestamp: "2025-02-13T15:30:00",
-  },
-  {
-    id: 3,
-    driver_name: "Mark Johnson",
-    tanker_number: "TNX-003",
-    liters_offloaded: 4500,
-    fuel_type: "Kerosene",
-    timestamp: "2025-02-12T08:15:00",
-  },
-]);
-
-// 🔍 Computed: Filtered transactions
-const filteredTransactions = computed(() => {
-  let filtered = transactions;
-
-  // Search filter
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
-    filtered = filtered.filter(
-      (tx) =>
-        tx.driver_name.toLowerCase().includes(query) ||
-        tx.tanker_number.toLowerCase().includes(query)
-    );
-  }
-
-  // Date range filter
-  if (dateRange.start && dateRange.end) {
-    filtered = filtered.filter((tx) => {
-      const date = new Date(tx.timestamp);
-      return (
-        date >= new Date(dateRange.start) && date <= new Date(dateRange.end)
-      );
-    });
-  }
-
-  return filtered;
-});
-
-// ✅ Debugging: Watch transactions to ensure they update properly
-watchEffect(() => {
-  console.log("Filtered Transactions:", filteredTransactions.value);
-});
-
-// 🔄 Open modal for adding/editing
-const openModal = (transaction = null) => {
-  editingTransaction.value = transaction
-    ? { ...transaction }
-    : {
-        id: null,
-        driver_name: "",
-        tanker_number: "",
-        liters_offloaded: "",
-        fuel_type: "",
-        timestamp: new Date().toISOString(),
-      };
-  showModal.value = true;
-};
-
-// 💾 Save transaction
-const saveTransaction = () => {
-  if (editingTransaction.value.id) {
-    // Update existing transaction
-    const index = transactions.findIndex(
-      (tx) => tx.id === editingTransaction.value.id
-    );
-    if (index !== -1) {
-      transactions[index] = { ...editingTransaction.value };
-    }
-  } else {
-    // Add new transaction
-    editingTransaction.value.id = transactions.length + 1;
-    transactions.push({ ...editingTransaction.value });
-  }
-  showModal.value = false;
-};
-
-// ❌ Delete transaction
-const deleteTransaction = (id: number) => {
-  const index = transactions.findIndex((tx) => tx.id === id);
-  if (index !== -1) {
-    transactions.splice(index, 1);
-  }
-};
-
-// 📤 Export transactions (Mock)
-const exportTransactions = () => {
-  console.log("Exporting transactions:", transactions);
-  alert("Transactions exported (mock function).");
-};
-
-// 🔄 Fetch session on mount
-onMounted(async () => {
-  console.log("Dummy data loaded", transactions);
-  const hasSession = await authStore.checkSession();
-  if (!hasSession) {
-    router.push("/auth/login");
-    return;
-  }
-  await authStore.fetchUser();
-});
-</script>
-
 <template>
   <v-container>
-    <v-row class="align-center mb-4">
-      <!-- 🔎 Search Bar -->
-      <v-col cols="6">
-        <v-text-field
-          v-model="searchQuery"
-          label="Search Tanker Driver"
-          prepend-inner-icon="mdi-magnify"
-        />
-      </v-col>
-
-      <!-- 📅 Date Filters -->
-      <v-col cols="3">
-        <v-text-field v-model="dateRange.start" type="date" label="Start Date">
-          <template v-slot:prepend-inner><CalendarIcon /></template>
-        </v-text-field>
-      </v-col>
-      <v-col cols="3">
-        <v-text-field v-model="dateRange.end" type="date" label="End Date">
-          <template v-slot:prepend-inner><CalendarIcon /></template>
-        </v-text-field>
-      </v-col>
-    </v-row>
-
     <v-row class="justify-end mb-4">
-      <v-btn color="green" class="mr-2" @click="openModal()">
-        <PlusIcon class="mr-2" /> Add Tanker Driver
+      <v-btn color="green" class="mr-2" @click="openModal">
+        <PlusIcon class="mr-2" /> Add Driver
       </v-btn>
-      <v-btn color="blue" @click="exportTransactions">
+      <v-btn color="blue" @click="exportDrivers">
         <FileExportIcon class="mr-2" /> Export
       </v-btn>
     </v-row>
 
-    <!-- 📋 Filtered Transactions Table -->
+    <!-- 📋 Tanker Drivers Table -->
     <v-card class="mb-6">
-      <v-card-title>
-        <FilterIcon class="mr-2" /> Filtered Tanker Drivers
-      </v-card-title>
-      <v-data-table
-        :headers="[
-          { text: 'Driver Name', value: 'driver_name' },
-          { text: 'Tanker Number', value: 'tanker_number' },
-          { text: 'Liters Offloaded', value: 'liters_offloaded' },
-          { text: 'Fuel Type', value: 'fuel_type' },
-          { text: 'Date', value: 'timestamp' },
-          { text: 'Actions', value: 'actions', sortable: false },
-        ]"
-        :items="transactions"
-        item-value="id"
-        class="elevation-1"
+      <v-card-title> <FilterIcon class="mr-2" /> Tanker Drivers </v-card-title>
+      <vue-good-table
+        :columns="columns"
+        :rows="filteredDrivers"
+        :search-options="{ enabled: true }"
+        :pagination-options="{
+          enabled: true,
+          perPage: 5,
+        }"
       >
-        <template v-slot:item.timestamp="{ item }">
-          {{ new Date(item.timestamp).toLocaleString() }}
+        <template v-slot:table-row="{ column, row }">
+          <span v-if="column.field === 'actions'">
+            <v-btn small icon color="blue" @click="openModal(row)">
+              <EditIcon />
+            </v-btn>
+            <v-btn small icon color="red" @click="deleteDriver(row.id)">
+              <TrashIcon />
+            </v-btn>
+          </span>
         </template>
-
-        <template v-slot:item.actions="{ item }">
-          <v-btn small icon color="blue" @click="openModal(item)">
-            <EditIcon />
-          </v-btn>
-          <v-btn small icon color="red" @click="deleteTransaction(item.id)">
-            <TrashIcon />
-          </v-btn>
-        </template>
-
-        <template v-slot:no-data>
-          <v-alert type="warning"> No tankers found! </v-alert>
-        </template>
-      </v-data-table>
+      </vue-good-table>
     </v-card>
 
-    <!-- 📝 Transaction Modal -->
-    <v-dialog v-model="showModal" max-width="400">
+    <!-- Modal Component -->
+    <v-dialog v-model="showModal" max-width="600px">
       <v-card>
         <v-card-title>
-          {{ editingTransaction?.id ? "Edit" : "Add" }} Record
+          <span v-if="editingDriver.id">Edit Driver</span>
+          <span v-else>Add Driver</span>
         </v-card-title>
         <v-card-text>
-          <v-text-field
-            v-model="editingTransaction.driver_name"
-            label="Driver Name"
-          />
-          <v-text-field
-            v-model="editingTransaction.tanker_number"
-            label="Tanker Number"
-          />
-          <v-text-field
-            v-model="editingTransaction.liters_offloaded"
-            type="number"
-            label="Liters Offloaded"
-          />
-          <v-text-field
-            v-model="editingTransaction.fuel_type"
-            label="Fuel Type"
-          />
-          <v-text-field
-            v-model="editingTransaction.timestamp"
-            type="datetime-local"
-            label="Date"
-          />
+          <v-form>
+            <v-text-field
+              v-model="editingDriver.name"
+              label="Driver Name"
+              required
+            />
+            <v-text-field
+              v-model="editingDriver.licenseNumber"
+              label="License Number"
+              required
+            />
+            <v-select
+              v-model="editingDriver.assignedStation"
+              :items="stations"
+              item-title="name"
+              item-value="name"
+              label="Assigned Station"
+              required
+            />
+            <v-text-field
+              v-model="editingDriver.tankerNumber"
+              label="Tanker Number"
+              required
+            />
+            <v-text-field
+              v-model="editingDriver.contact"
+              label="Contact Number"
+              required
+            />
+          </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-btn color="gray" @click="showModal = false"
-            ><XIcon class="mr-2" /> Cancel</v-btn
-          >
-          <v-btn color="blue" @click="saveTransaction"
-            ><CheckIcon class="mr-2" /> Save</v-btn
-          >
+          <v-btn color="green" @click="saveDriver">Save</v-btn>
+          <v-btn color="red" @click="showModal = false">Cancel</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
   </v-container>
 </template>
+
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { useToast } from "vue-toastification";
+import {
+  FileExportIcon,
+  FilterIcon,
+  EditIcon,
+  TrashIcon,
+  PlusIcon,
+} from "vue-tabler-icons";
+
+const toast = useToast();
+
+// State
+const searchQuery = ref("");
+const showModal = ref(false);
+const editingDriver = ref<any>(null);
+const submitted = ref(false);
+
+// Dummy data for fuel stations
+const stations = ref([
+  { id: 1, name: "Alpha Fuel Station" },
+  { id: 2, name: "Beta Gas Station" },
+  { id: 3, name: "Gamma Oil Depot" },
+  { id: 4, name: "Delta Fuel Station" },
+  { id: 5, name: "Epsilon Gas Station" },
+  { id: 6, name: "Zeta Oil Depot" },
+]);
+
+// Dummy data for tanker drivers
+const drivers = ref([
+  {
+    id: 1,
+    name: "Kwame Mensah",
+    licenseNumber: "DL-1001",
+    assignedStation: "Alpha Fuel Station",
+    tankerNumber: "TN-001",
+    contact: "+233 24 111 2222",
+  },
+  {
+    id: 2,
+    name: "Sarah Owusu",
+    licenseNumber: "DL-1002",
+    assignedStation: "Beta Gas Station",
+    tankerNumber: "TN-002",
+    contact: "+233 55 333 4444",
+  },
+  {
+    id: 3,
+    name: "John Boateng",
+    licenseNumber: "DL-1003",
+    assignedStation: "Gamma Oil Depot",
+    tankerNumber: "TN-003",
+    contact: "+233 20 555 6666",
+  },
+  {
+    id: 4,
+    name: "Mary Adu",
+    licenseNumber: "DL-1004",
+    assignedStation: "Delta Fuel Station",
+    tankerNumber: "TN-004",
+    contact: "+233 26 777 8888",
+  },
+  {
+    id: 5,
+    name: "Daniel Osei",
+    licenseNumber: "DL-1005",
+    assignedStation: "Epsilon Gas Station",
+    tankerNumber: "TN-005",
+    contact: "+233 50 999 0000",
+  },
+]);
+
+// Table columns
+const columns = ref([
+  { label: "Driver Name", field: "name" },
+  { label: "License Number", field: "licenseNumber" },
+  { label: "Assigned Station", field: "assignedStation" },
+  { label: "Tanker Number", field: "tankerNumber" },
+  { label: "Contact Number", field: "contact" },
+  { label: "Actions", field: "actions", sortable: false },
+]);
+
+// Filtered drivers
+const filteredDrivers = computed(() => {
+  let filtered = drivers.value;
+  if (searchQuery.value) {
+    filtered = filtered.filter((driver) =>
+      driver.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+    );
+  }
+  return filtered;
+});
+
+// Open modal for adding/editing
+const openModal = (driver = null) => {
+  editingDriver.value = driver
+    ? { ...driver }
+    : {
+        id: null,
+        name: "",
+        licenseNumber: "",
+        assignedStation: "",
+        tankerNumber: "",
+        contact: "",
+      };
+  submitted.value = false;
+  showModal.value = true;
+};
+
+// Save driver
+const saveDriver = () => {
+  if (editingDriver.value.id) {
+    const index = drivers.value.findIndex(
+      (d) => d.id === editingDriver.value.id
+    );
+    if (index !== -1) {
+      drivers.value[index] = { ...editingDriver.value };
+    }
+  } else {
+    editingDriver.value.id = drivers.value.length + 1;
+    drivers.value.push({ ...editingDriver.value });
+  }
+  showModal.value = false;
+  toast.success("Driver saved successfully!");
+};
+
+// Export drivers (Mock)
+const exportDrivers = () => {
+  console.log("Exporting drivers:", drivers.value);
+  toast.info("Drivers exported (mock function).");
+};
+
+// Delete driver
+const deleteDriver = (id: number) => {
+  drivers.value = drivers.value.filter((d) => d.id !== id);
+  toast.success("Driver deleted successfully!");
+};
+</script>

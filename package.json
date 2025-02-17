@@ -32,6 +32,7 @@
     "vue": "latest",
     "vue-chart-3": "^3.1.8",
     "vue-chartjs": "^5.3.2",
+    "vue-good-table-next": "^0.2.2",
     "vue-router": "latest",
     "vue-socket.io": "^3.0.10",
     "vue-tabler-icons": "2.9.0",
