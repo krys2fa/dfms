@@ -30,7 +30,7 @@ onMounted(async () => {
       return;
     }
     await authStore.fetchUser();
-    // await stationStore.fetchStations();
+    await stationStore.fetchStations();
     // await ownerStore.fetchOwners();
   } catch (error) {
     toast.error("Error fetching data, please try again.");
@@ -187,7 +187,7 @@ const formattedStations = computed(() =>
           { text: 'Owner', value: 'owner' },
           { text: 'Actions', value: 'actions', sortable: false },
         ]"
-        :items="filteredStations"
+        :items="stationStore.stations"
         class="elevation-1"
         item-value="id"
       >

@@ -1,76 +1,124 @@
+// Database connection setup
+datasource db {
+  provider = "postgresql" // Change this based on your database (e.g., mysql, sqlite)
+  url      = env("DATABASE_URL") // Uses an environment variable for security
+}
+
+// Prisma Client generator
 generator client {
   provider = "prisma-client-js"
 }
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
+// 🚀 User model (Super Admin, Owners, Attendants & Drivers)
 model User {
-  id         String   @id @default(uuid())
-  createdAt  DateTime @default(now())
-  stationId  String?  @db.Uuid
-  authId     String?  @db.Uuid
-  email      String   @unique
-  password   String 
-  role       String
-  name       String
-  transactions Transaction[]
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  password  String
+  role      Role      @default(ATTENDANT) // ENUM: SUPERADMIN, OWNER, ATTENDANT, DRIVER
+
+  // Relationships
+  stations  Station[] @relation("OwnerStations") // Owners can have multiple stations
+  sales     FuelSale[] @relation("AttendantSales") // Attendants make multiple sales
+  tanker    FuelTanker? @relation("TankerDriver", fields: [tankerId], references: [id]) // Driver assigned to a tanker
+  tankerId  String? @unique // Nullable: Only assigned if the user is a DRIVER
+  transfers FuelTransfer[] @relation("DriverTransfers") // Driver can have multiple transfers
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
 }
 
+// 📍 Fuel Station
 model Station {
-  id         String   @id @default(uuid())
-  ownerId    String?  @db.Uuid
-  createdAt  DateTime @default(now())
-  name       String
-  location   String
-  transactions Transaction[]
-  fuelTypes  StationFuelType[]
-
-  DailyReport DailyReport[]
+  id        String      @id @default(uuid())
+  name      String
+  location  String
+  ownerId   String
+  owner     User        @relation("OwnerStations", fields: [ownerId], references: [id])
+  pumps     FuelPump[]  // Station has multiple pumps
+  tankers   FuelTanker[] // Station has multiple tankers
+  transfers FuelTransfer[] // Fuel deliveries to the station
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
 }
 
-model FuelType {
-  id         String   @id @default(uuid())
-  createdAt  DateTime @default(now())
-  name       String
-  transactions Transaction[]
-  stations   StationFuelType[]
+// ⛽ Fuel Pump
+model FuelPump {
+  id        String     @id @default(uuid())
+  stationId String
+  station   Station    @relation(fields: [stationId], references: [id])
+  sales     FuelSale[] // Each pump records sales
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
 }
 
-model Transaction {
-  id          String   @id @default(uuid())
+// 🚚 Fuel Tanker (for deliveries) – Each tanker is assigned a driver
+model FuelTanker {
+  id          String     @id @default(uuid())
+  name        String
+  capacity    Int
   stationId   String
+  station     Station    @relation(fields: [stationId], references: [id])
+  driverId    String? @unique // Nullable: A tanker may not always have a driver
+  driver      User? @relation("TankerDriver") // Fixed relation
+  transfers   FuelTransfer[] // Track all transfers made by this tanker
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+}
+
+// 📊 Fuel Transfer (source to destination tracking)
+model FuelTransfer {
+  id              String   @id @default(uuid())
+  source          String   // e.g., "Main Depot"
+  destination     String   // e.g., "Station A"
+  initialLiters   Int
+  finalLiters     Int
+  differenceLiters Int @default(0) // Auto-calculate difference
+
+  tankerId        String
+  tanker          FuelTanker @relation(fields: [tankerId], references: [id])
+
+  driverId        String?    
+  driver          User?      @relation("DriverTransfers", fields: [driverId], references: [id]) // Fixed relation
+
+  stationId       String
+  station         Station  @relation(fields: [stationId], references: [id])
+
+  receipt         Receipt?  // Receipt for the transfer
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+}
+
+// 💰 Fuel Sale (Records every transaction by attendants)
+model FuelSale {
+  id         String   @id @default(uuid())
   attendantId String
-  fuelTypeId  String
-  amount      Float
-  litersSold  Float
-  timestamp   DateTime @default(now())
-  licensePlate String?
-
-  station    Station  @relation(fields: [stationId], references: [id])
-  attendant  User     @relation(fields: [attendantId], references: [id])
-  fuelType   FuelType @relation(fields: [fuelTypeId], references: [id])
+  attendant  User     @relation("AttendantSales", fields: [attendantId], references: [id])
+  pumpId     String
+  pump       FuelPump @relation(fields: [pumpId], references: [id])
+  liters     Int
+  amount     Float
+  createdAt  DateTime @default(now())
+  receipt    Receipt? // Associated receipt for this sale
+  updatedAt DateTime @updatedAt @default(now())
 }
 
-model DailyReport {
+// 📝 Uploaded Files (Receipts, Vouchers, Waybills)
+model Receipt {
   id          String   @id @default(uuid())
-  stationId   String
-  totalSales  Float
-  totalLiters Float
-  reportDate  DateTime
-  createdAt   DateTime @default(now())
-
-  station     Station  @relation(fields: [stationId], references: [id])
+  fileUrl     String
+  fileType    String   // e.g., "receipt", "voucher", "waybill"
+  transferId  String? @unique // Can be attached to a transfer
+  transfer    FuelTransfer? @relation(fields: [transferId], references: [id])
+  saleId      String? @unique // Can be attached to a sale
+  sale        FuelSale? @relation(fields: [saleId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
 }
 
-model StationFuelType {
-  stationId  String
-  fuelTypeId String
-
-  station   Station  @relation(fields: [stationId], references: [id])
-  fuelType  FuelType @relation(fields: [fuelTypeId], references: [id])
-
-  @@id([stationId, fuelTypeId])
+// 🔹 User Role ENUM (Added SUPERADMIN)
+enum Role {
+  SUPERADMIN // Full access
+  OWNER      // Can manage own stations, tankers, attendants
+  ATTENDANT  // Can record sales
+  DRIVER     // Can only track fuel transfers
 }
