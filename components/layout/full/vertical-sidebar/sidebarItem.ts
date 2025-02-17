@@ -83,11 +83,11 @@ const sidebarItem: menu[] = [
     to: "/owners",
   },
   { header: "Accounting" },
-  {
-    title: "Transactions",
-    icon: ReportMoneyIcon,
-    to: "/transactions",
-  },
+  // {
+  //   title: "Transactions",
+  //   icon: ReportMoneyIcon,
+  //   to: "/transactions",
+  // },
   {
     title: "Documents",
     icon: FileUploadIcon,
@@ -98,11 +98,11 @@ const sidebarItem: menu[] = [
     icon: ReportIcon,
     to: "/reports",
   },
-  {
-    title: "Settings",
-    icon: SettingsIcon,
-    to: "/settings",
-  },
+  // {
+  //   title: "Settings",
+  //   icon: SettingsIcon,
+  //   to: "/settings",
+  // },
   //   { header: "Home" },
   //   {
   //     title: "Dashboard",

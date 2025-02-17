@@ -16,6 +16,7 @@ import {
   CheckIcon,
 } from "vue-tabler-icons";
 
+// Stores & Dependencies
 const authStore = useAuthStore();
 const router = useRouter();
 const stationStore = useStationStore();
@@ -31,7 +32,7 @@ onMounted(async () => {
     }
     await authStore.fetchUser();
     await stationStore.fetchStations();
-    // await ownerStore.fetchOwners();
+    // await ownerStore.fetchOwners(); // Ensure owners are loaded
   } catch (error) {
     toast.error("Error fetching data, please try again.");
   }
@@ -46,7 +47,6 @@ const submitted = ref(false);
 // 🔎 Filtered stations
 const filteredStations = computed(() => {
   let stations = stationStore.stations;
-  console.log("stations", stationStore.stations);
   if (searchQuery.value) {
     stations = stations.filter((station) =>
       station.name.toLowerCase().includes(searchQuery.value.toLowerCase())
@@ -63,7 +63,7 @@ const openModal = (station = null) => {
         id: null,
         name: "",
         location: "",
-        owner_id: null,
+        ownerId: null, // Fixed property name
       };
   submitted.value = false;
   showModal.value = true;
@@ -74,11 +74,21 @@ const isFormInvalid = computed(() => {
   return (
     !editingStation.value.name ||
     !editingStation.value.location ||
-    !editingStation.value.owner_id
+    !editingStation.value.ownerId // Fixed property name
   );
 });
 
-// 💾 Save station with validation + toast notifications
+// 📋 Format stations to include owner names
+const formattedStations = computed(() =>
+  stationStore.stations.map((station) => ({
+    ...station,
+    owner:
+      ownerStore.owners.find((o) => o.id === station.ownerId)?.name ||
+      "Unknown",
+  }))
+);
+
+// 💾 Save station with validation
 const saveStation = async () => {
   submitted.value = true;
 
@@ -101,8 +111,8 @@ const saveStation = async () => {
   }
 };
 
-// ❌ Delete station with toast notification
-const deleteStation = async (id: number) => {
+// ❌ Delete station
+const deleteStation = async (id: string) => {
   try {
     await stationStore.deleteStation(id);
     toast.success("Station deleted successfully!");
@@ -116,19 +126,11 @@ const exportStations = () => {
   console.log("Exporting stations:", stationStore.stations);
   toast.info("Stations exported (mock function).");
 };
-
-const formattedStations = computed(() =>
-  stationStore.stations.map((station) => ({
-    ...station,
-    owner:
-      ownerStore.owners.find((o) => o.id === station.owner_id)?.name ||
-      "Unknown",
-  }))
-);
 </script>
 
 <template>
   <v-container>
+    <!-- 🔍 Search -->
     <v-row class="align-center mb-4">
       <v-col cols="6">
         <v-text-field
@@ -139,6 +141,7 @@ const formattedStations = computed(() =>
       </v-col>
     </v-row>
 
+    <!-- ➕ Add & Export Buttons -->
     <v-row class="justify-end mb-4">
       <v-btn color="green" class="mr-2" @click="openModal()">
         <PlusIcon class="mr-2" /> Add Station
@@ -160,7 +163,7 @@ const formattedStations = computed(() =>
           { text: 'Owner', value: 'owner' },
           { text: 'Actions', value: 'actions', sortable: false },
         ]"
-        :items="filteredStations"
+        :items="formattedStations"
         class="elevation-1"
         item-value="id"
       >
@@ -187,7 +190,7 @@ const formattedStations = computed(() =>
           { text: 'Owner', value: 'owner' },
           { text: 'Actions', value: 'actions', sortable: false },
         ]"
-        :items="stationStore.stations"
+        :items="stations"
         class="elevation-1"
         item-value="id"
       >
@@ -220,13 +223,13 @@ const formattedStations = computed(() =>
           </p>
 
           <v-select
-            v-model="editingStation.owner_id"
+            v-model="editingStation.ownerId"
             :items="ownerStore.owners"
             item-title="name"
             item-value="id"
             label="Owner"
           />
-          <p v-if="submitted && !editingStation.owner_id" class="error">
+          <p v-if="submitted && !editingStation.ownerId" class="error">
             Owner is required
           </p>
         </v-card-text>

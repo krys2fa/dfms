@@ -10,6 +10,10 @@ import { useRouter } from "vue-router";
 
 const authStore = useAuthStore();
 const router = useRouter();
+
+const goToSettings = () => {
+  router.push("/settings");
+};
 </script>
 
 <template>
@@ -66,6 +70,15 @@ const router = useRouter();
             </template>
             <v-list-item-title class="pl-4">My Tasks</v-list-item-title>
           </v-list-item>
+
+          <v-btn @click="goToSettings" text class="no-border">
+            <v-list-item>
+              <template v-slot:prepend>
+                <SettingsIcon stroke-width="1.5" size="20" />
+              </template>
+              <v-list-item-title class="pl-4">Settings</v-list-item-title>
+            </v-list-item>
+          </v-btn>
         </v-list>
 
         <!-- Logout Button -->
@@ -83,3 +96,14 @@ const router = useRouter();
     </v-menu>
   </v-row>
 </template>
+<style scoped>
+.no-border {
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0;
+  width: 100%;
+}
+.custom-hover-primary:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+</style>
