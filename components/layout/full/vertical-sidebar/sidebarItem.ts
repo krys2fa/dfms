@@ -49,22 +49,22 @@ const sidebarItem: menu[] = [
   {
     title: "Fuel Pumps",
     icon: GasStationIcon,
-    to: "/fueltypes",
+    to: "/fuelpumps",
   },
   {
     title: "Fuel Tankers",
     icon: TruckIcon,
-    to: "/fueltypes",
+    to: "/fueltankers",
   },
   {
     title: "Fuel Sales",
     icon: ChartLineIcon,
-    to: "/fueltypes",
+    to: "/fuelsales",
   },
   {
     title: "Fuel Transfers",
     icon: TransferOutIcon,
-    to: "/fueltypes",
+    to: "/fueltransfers",
   },
   { header: "Staff Management" },
   {
@@ -75,12 +75,12 @@ const sidebarItem: menu[] = [
   {
     title: "Attendants",
     icon: UsersIcon,
-    to: "/fueltypes",
+    to: "/attendants",
   },
   {
     title: "Owners",
     icon: UsersIcon,
-    to: "/fueltypes",
+    to: "/owners",
   },
   { header: "Accounting" },
   {
