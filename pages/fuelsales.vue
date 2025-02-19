@@ -43,8 +43,16 @@
         </v-card-title>
         <v-card-text>
           <v-form>
-            <v-text-field
+            <!-- <v-text-field
               v-model="editingSale.attendant"
+              label="Attendant"
+              required
+            /> -->
+            <v-select
+              v-model="editingSale.attendant"
+              :items="attendants"
+              item-title="name"
+              item-value="id"
               label="Attendant"
               required
             />
@@ -64,9 +72,17 @@
               label="Receipt Number"
               required
             />
-            <v-text-field
+            <!-- <v-text-field
               v-model="editingSale.station"
               label="Station"
+              required
+            /> -->
+            <v-select
+              v-model="editingSale.station"
+              :items="stations"
+              item-title="name"
+              item-value="id"
+              label="Assigned Station"
               required
             />
             <v-menu
@@ -129,7 +145,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useToast } from "vue-toastification";
 import {
   FileExportIcon,
@@ -138,13 +154,25 @@ import {
   TrashIcon,
   PlusIcon,
 } from "vue-tabler-icons";
+import { useStationStore } from "../stores/stations";
+import { useUserStore } from "../stores/users";
 
 const toast = useToast();
+const stationStore = useStationStore();
+const userStore = useUserStore();
 
 // State
 const searchQuery = ref("");
 const showModal = ref(false);
-const editingSale = ref<any>(null);
+const editingStation = ref<any>({
+  id: null,
+  amount: "",
+  liters: "",
+  attendantId: "",
+  pumpId: "",
+  receipt: "",
+  createdAt: "",
+});
 const submitted = ref(false);
 const dateMenu = ref(false);
 const timeMenu = ref(false);
@@ -231,6 +259,17 @@ const columns = ref([
   { label: "Time", field: "time" },
   { label: "Actions", field: "actions", sortable: false },
 ]);
+
+const attendants = ref<{ id: string; name: string }[]>([]);
+onMounted(async () => {
+  await stationStore.fetchStations();
+  attendants.value = await userStore.fetchUsersByRole("ATTENDANT");
+});
+
+const getAttendantName = (attendantId: string) => {
+  const attendant = attendants.value.find((o) => o.id === attendantId);
+  return attendant ? attendant.name : "Unknown";
+};
 
 // Filtered fuel sales
 const filteredSales = computed(() => {
