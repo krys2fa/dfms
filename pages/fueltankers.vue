@@ -58,11 +58,11 @@
               label="License Plate"
               required
             />
-            <v-text-field
+            <!-- <v-text-field
               v-model="editingTanker.assignedDriver"
               label="Assigned Driver"
               required
-            />
+            /> -->
             <v-text-field
               v-model="editingTanker.assignedStation"
               label="Assigned Station"
@@ -80,8 +80,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useToast } from "vue-toastification";
+import { useStationStore } from "../stores/stations";
+import { useTankersStore } from "../stores/fueltankers";
 import {
   FileExportIcon,
   FilterIcon,
@@ -91,12 +93,22 @@ import {
 } from "vue-tabler-icons";
 
 const toast = useToast();
+const stationStore = useStationStore();
+const tankerStore = useTankersStore();
 
 // State
 const searchQuery = ref("");
 const showModal = ref(false);
-const editingTanker = ref<any>(null);
+const editingTanker = ref<any>({
+  id: null,
+  name: "",
+  capacity: "",
+  licensePlate: "",
+});
 const submitted = ref(false);
+
+// const owners = ref<{ id: string; name: string }[]>([]);
+const stations = ref<{ id: string; name: string }[]>([]);
 
 // Dummy data for fuel tankers
 const fuelTankers = ref([
@@ -160,6 +172,11 @@ const columns = ref([
   { label: "Actions", field: "actions", sortable: false },
 ]);
 
+onMounted(async () => {
+  await stationStore.fetchStations();
+  // owners.value = await userStore.fetchUsersByRole("OWNER");
+});
+
 // Filtered fuel tankers
 const filteredTankers = computed(() => {
   let filtered = fuelTankers.value;
@@ -171,6 +188,11 @@ const filteredTankers = computed(() => {
   return filtered;
 });
 
+const getOwnerName = (ownerId: string) => {
+  const owner = owners.value.find((o) => o.id === ownerId);
+  return owner ? owner.name : "Unknown";
+};
+
 // Open modal for adding/editing
 const openModal = (tanker = null) => {
   editingTanker.value = tanker
@@ -180,8 +202,8 @@ const openModal = (tanker = null) => {
         name: "",
         capacity: "",
         licensePlate: "",
-        assignedDriver: "",
-        assignedStation: "",
+        // assignedDriver: "",
+        // assignedStation: "",
       };
   submitted.value = false;
   showModal.value = true;

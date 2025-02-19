@@ -9,24 +9,24 @@
       </v-btn>
     </v-row>
 
-    <!-- 📋 Filtered Fuel Pumps Table -->
+    <!-- 📋 Filtered Pumps Table -->
     <v-card class="mb-6">
-      <v-card-title> <FilterIcon class="mr-2" /> Fuel Pumps </v-card-title>
+      <v-card-title> <FilterIcon class="mr-2" /> Pumps </v-card-title>
       <vue-good-table
         :columns="columns"
         :rows="filteredPumps"
         :search-options="{ enabled: true }"
-        :pagination-options="{
-          enabled: true,
-          perPage: 5,
-        }"
+        :pagination-options="{ enabled: true, perPage: 5 }"
       >
         <template v-slot:table-row="{ column, row }">
+          <span v-if="column.field === 'station'">
+            {{ row.station }}
+          </span>
           <span v-if="column.field === 'actions'">
             <v-btn small icon color="blue" @click="openModal(row)">
               <EditIcon />
             </v-btn>
-            <v-btn small icon color="red" @click="deletePump(row.id)">
+            <v-btn small icon color="red" @click="confirmDelete(row.id)">
               <TrashIcon />
             </v-btn>
           </span>
@@ -48,9 +48,11 @@
               label="Pump Name"
               required
             />
-            <v-text-field v-model="editingPump.type" label="Type" required />
-            <v-text-field
+            <v-select
               v-model="editingPump.station"
+              :items="stations"
+              item-title="name"
+              item-value="id"
               label="Station"
               required
             />
@@ -66,8 +68,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useToast } from "vue-toastification";
+import { usePumpStore } from "../stores/fuelpumps";
+import { useStationStore } from "../stores/stations";
 import {
   FileExportIcon,
   FilterIcon,
@@ -77,82 +81,84 @@ import {
 } from "vue-tabler-icons";
 
 const toast = useToast();
+const pumpStore = usePumpStore();
+const stationStore = useStationStore();
 
-// State
-const searchQuery = ref("");
 const showModal = ref(false);
-const editingPump = ref<any>(null);
-const submitted = ref(false);
+const editingPump = ref<any>({
+  id: null,
+  name: "",
+  station: "",
+});
+const stations = ref<{ id: string; name: string }[]>([]);
 
-// Dummy data for fuel pumps
-const fuelPumps = ref([
-  { id: 1, name: "Pump 1", type: "Diesel", station: "Alpha Fuel Station" },
-  { id: 2, name: "Pump 2", type: "Petrol", station: "Beta Gas Station" },
-  { id: 3, name: "Pump 3", type: "Kerosene", station: "Gamma Oil Depot" },
-  { id: 4, name: "Pump 4", type: "Diesel", station: "Delta Fuel Station" },
-  { id: 5, name: "Pump 5", type: "Petrol", station: "Epsilon Gas Station" },
-  { id: 6, name: "Pump 6", type: "Kerosene", station: "Zeta Oil Depot" },
-]);
-
-// Table columns
-const columns = ref([
-  { label: "Pump Name", field: "name" },
-  { label: "Type", field: "type" },
-  { label: "Station", field: "station" },
-  { label: "Actions", field: "actions", sortable: false },
-]);
-
-// Filtered fuel pumps
-const filteredPumps = computed(() => {
-  let filtered = fuelPumps.value;
-  if (searchQuery.value) {
-    filtered = filtered.filter((pump) =>
-      pump.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    );
-  }
-  return filtered;
+// Fetch pumps and stations
+onMounted(async () => {
+  await pumpStore.fetchPumps();
+  stations.value = await stationStore.fetchStations();
 });
 
-// Open modal for adding/editing
+// Helper to map station ID to station name
+const getStationName = (stationId: string) => {
+  const station = stations.value.find((s) => s.id === stationId);
+  return station ? station.name : "Unknown";
+};
+
+// Filtered pumps with correct station mapping
+const filteredPumps = computed(() => {
+  return pumpStore.fuelpumps.map((pump) => ({
+    ...pump,
+    station: getStationName(pump.stationId),
+  }));
+});
+
 const openModal = (pump = null) => {
-  editingPump.value = pump
-    ? { ...pump }
-    : {
-        id: null,
-        name: "",
-        type: "",
-        station: "",
-      };
-  submitted.value = false;
+  editingPump.value = pump ? { ...pump } : { id: null, name: "", station: "" };
   showModal.value = true;
 };
 
-// Save pump
-const savePump = () => {
-  if (editingPump.value.id) {
-    const index = fuelPumps.value.findIndex(
-      (p) => p.id === editingPump.value.id
-    );
-    if (index !== -1) {
-      fuelPumps.value[index] = { ...editingPump.value };
-    }
-  } else {
-    editingPump.value.id = fuelPumps.value.length + 1;
-    fuelPumps.value.push({ ...editingPump.value });
+const savePump = async () => {
+  if (!editingPump.value.name || !editingPump.value.station) {
+    toast.error("All fields are required!");
+    return;
   }
-  showModal.value = false;
-  toast.success("Pump saved successfully!");
+  try {
+    const pumpData = {
+      ...editingPump.value,
+      stationId: editingPump.value.stationId, // Ensure correct key is used
+    };
+    if (editingPump.value.id) {
+      await pumpStore.updatePump(pumpData);
+      toast.success("Pump updated successfully!");
+    } else {
+      await pumpStore.addPump(pumpData);
+      toast.success("Pump added successfully!");
+    }
+    showModal.value = false;
+  } catch (error) {
+    toast.error(error.message || "Failed to save pump.");
+  }
 };
 
-// Export fuel pumps (Mock)
+const confirmDelete = async (id: number) => {
+  if (confirm("Are you sure you want to delete this pump?")) {
+    try {
+      await pumpStore.deletePump(id);
+      toast.success("Pump deleted successfully!");
+    } catch (error) {
+      toast.error(error.message || "Failed to delete pump.");
+    }
+  }
+};
+
 const exportPumps = () => {
-  console.log("Exporting fuel pumps:", fuelPumps.value);
-  toast.info("Fuel pumps exported (mock function).");
+  console.log("Exporting pumps:", pumpStore.pumps);
+  toast.info("Pumps exported (mock function).");
 };
 
-// Delete fuel pump
-const deletePump = (id: number) => {
-  fuelPumps.value = fuelPumps.value.filter((p) => p.id !== id);
-  toast.success("Pump deleted successfully!");
-};
+const columns = ref([
+  { label: "Pump Name", field: "name" },
+  { label: "Station", field: "station" },
+  { label: "Actions", field: "actions", sortable: false },
+]);
 </script>

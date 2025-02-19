@@ -44,6 +44,7 @@ model Station {
 // ⛽ Fuel Pump
 model FuelPump {
   id        String     @id @default(uuid())
+  name      String     @db.VarChar(255)   @default("Unnamed Pump")
   stationId String
   station   Station    @relation(fields: [stationId], references: [id])
   sales     FuelSale[] // Each pump records sales
@@ -57,6 +58,7 @@ model FuelTanker {
   name        String
   capacity    Int
   stationId   String
+  licensePlate      String     @db.VarChar(255)   @default("GS 7015 R")
   station     Station    @relation(fields: [stationId], references: [id])
   driverId    String? @unique // Nullable: A tanker may not always have a driver
   driver      User? @relation("TankerDriver") // Fixed relation

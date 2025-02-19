@@ -1,7 +1,6 @@
 import { jwtDecode } from "jwt-decode"; // Install this package if needed
 
 export const getUserFromToken = (token: string | undefined) => {
-  console.log("🚀 ~ getUserFromToken ~ token:", token);
   try {
     if (!token) return null;
 

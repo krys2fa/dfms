@@ -17,7 +17,6 @@ export const useFuelTypeStore = defineStore("fuelTypes", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        console.log("Fuel Types fetched:", data);
         this.fuelTypes = data || [];
         return data;
       } catch (error) {
@@ -42,7 +41,6 @@ export const useFuelTypeStore = defineStore("fuelTypes", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        console.log("Fuel Type added:", data);
         this.fuelTypes.unshift(data);
         return { success: true, message: "Fuel Type added successfully." };
       } catch (error) {
@@ -80,7 +78,6 @@ export const useFuelTypeStore = defineStore("fuelTypes", {
         );
         if (index !== -1) this.fuelTypes[index] = updatedFuelType;
 
-        console.log("Fuel Type updated:", updatedFuelType);
         return { success: true, message: "Fuel Type updated successfully." };
       } catch (error) {
         console.error("Error updating fuel type:", error);

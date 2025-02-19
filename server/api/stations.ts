@@ -1,16 +1,13 @@
-import { useAuthStore } from "./../../stores/auth";
 import { defineEventHandler, getQuery, readBody } from "h3";
 import prisma from "~/server/utils/db"; // Assuming you're using Prisma for DB
 import { getUserFromToken } from "~/server/utils/auth"; // Function to verify user authentication
 
 export default defineEventHandler(async (event) => {
   const method = event.node.req.method;
-  console.log("🚀 ~ defineEventHandler ~ method:", method);
   const token = event.node.req.headers.authorization?.split(" ")[1];
 
   // Ensure user is authenticated
   const user = await getUserFromToken(token);
-  console.log("User:", user);
   if (!user) {
     return { statusCode: 401, error: "Unauthorized access." };
   }
@@ -48,9 +45,9 @@ async function getStations() {
 async function addStation(station: {
   name: string;
   location: string;
-  owner_id: string;
+  ownerId: string;
 }) {
-  if (!station.name || !station.location || !station.owner_id) {
+  if (!station.name || !station.location || !station.ownerId) {
     return {
       statusCode: 400,
       error: "All fields (name, location, owner) are required.",
@@ -61,7 +58,7 @@ async function addStation(station: {
     data: {
       name: station.name,
       location: station.location,
-      ownerId: station.owner_id,
+      ownerId: station.ownerId,
     },
   });
 
@@ -73,13 +70,13 @@ async function updateStation(updatedStation: {
   id: number;
   name: string;
   location: string;
-  owner_id: string;
+  ownerId: string;
 }) {
   if (
     !updatedStation.id ||
     !updatedStation.name ||
     !updatedStation.location ||
-    !updatedStation.owner_id
+    !updatedStation.ownerId
   ) {
     return {
       statusCode: 400,
@@ -92,7 +89,7 @@ async function updateStation(updatedStation: {
     data: {
       name: updatedStation.name,
       location: updatedStation.location,
-      ownerId: updatedStation.owner_id,
+      ownerId: updatedStation.ownerId,
     },
   });
 

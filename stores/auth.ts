@@ -8,8 +8,6 @@ const endpoint =
     ? ""
     : "/auth";
 
-console.log("evn", import.meta.env.VITE_API_BASE_URL);
-
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   "https://digital-fuel-system.netlify.app/.netlify/functions";
@@ -32,8 +30,6 @@ export const useAuthStore = defineStore("auth", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        console.log("data", data);
-
         this.user = data.user;
         this.role = data.user.role;
         return this.user;
@@ -50,9 +46,6 @@ export const useAuthStore = defineStore("auth", {
           email,
           password,
         });
-
-        console.log("loge", data);
-        console.log("evn", import.meta.env.VITE_API_BASE_URL);
 
         // Store token and user data
         this.user = data.user;
@@ -88,12 +81,6 @@ export const useAuthStore = defineStore("auth", {
             stationId,
           }
         );
-
-        // if (data.error) {
-        //   toast.error(data.error);
-        // }
-
-        console.log("🚀 ~ data:", data);
 
         this.user = data.user;
         this.role = data.user.role;

@@ -25,11 +25,6 @@ const register = async () => {
       role.value,
       name.value
     );
-    console.log("🚀 ~ register ~ response:", response);
-
-    // if (response.error) {
-    //   toast.error(response.error);
-    // }
 
     if (!response.error) {
       toast.success("User registered successfully as:", response.user);

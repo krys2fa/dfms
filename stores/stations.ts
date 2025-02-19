@@ -17,7 +17,6 @@ export const useStationStore = defineStore("stations", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        console.log("Stations fetched:", data);
         this.stations = data || [];
         return data;
       } catch (error) {
@@ -32,14 +31,14 @@ export const useStationStore = defineStore("stations", {
     async addStation(station: {
       name: string;
       location: string;
-      owner_id: string;
+      ownerId: string;
     }) {
       try {
         const token = localStorage.getItem("authToken");
         if (!token) throw new Error("No authentication token found.");
 
         // Validate required fields
-        if (!station.name || !station.location || !station.owner_id) {
+        if (!station.name || !station.location || !station.ownerId) {
           throw new Error("All fields (name, location, owner) are required.");
         }
 
@@ -47,7 +46,6 @@ export const useStationStore = defineStore("stations", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        console.log("Station added:", data);
         this.stations.unshift(data);
         return { success: true, message: "Station added successfully." };
       } catch (error) {
@@ -60,10 +58,10 @@ export const useStationStore = defineStore("stations", {
 
     // Update a station
     async updateStation(updatedStation: {
-      id: number;
+      id: string;
       name: string;
       location: string;
-      owner_id: string;
+      ownerId: string;
     }) {
       try {
         const token = localStorage.getItem("authToken");
@@ -72,12 +70,12 @@ export const useStationStore = defineStore("stations", {
         if (
           !updatedStation.name ||
           !updatedStation.location ||
-          !updatedStation.owner_id
+          !updatedStation.ownerId
         ) {
           throw new Error("All fields (name, location, owner) are required.");
         }
 
-        await axios.put(`/api/stations/${updatedStation.id}`, updatedStation, {
+        const response = await axios.put(`/api/stations/`, updatedStation, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -86,7 +84,6 @@ export const useStationStore = defineStore("stations", {
         );
         if (index !== -1) this.stations[index] = updatedStation;
 
-        console.log("Station updated:", updatedStation);
         return { success: true, message: "Station updated successfully." };
       } catch (error) {
         console.error("Error updating station:", error);
