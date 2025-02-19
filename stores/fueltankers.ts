@@ -124,5 +124,5 @@ export const useTankersStore = defineStore("fueltankers", {
 
 // Enable Hot Module Replacement (HMR)
 if (import.meta.hot) {
-  import.meta.hot.accept(acceptHMRUpdate(useTankerStore, import.meta.hot));
+  import.meta.hot.accept(acceptHMRUpdate(useTankersStore, import.meta.hot));
 }

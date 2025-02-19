@@ -63,8 +63,16 @@
               label="Assigned Driver"
               required
             /> -->
-            <v-text-field
+            <!-- <v-text-field
               v-model="editingTanker.assignedStation"
+              label="Assigned Station"
+              required
+            /> -->
+            <v-select
+              v-model="editingTanker.station"
+              :items="stations"
+              item-title="name"
+              item-value="id"
               label="Assigned Station"
               required
             />
@@ -104,6 +112,7 @@ const editingTanker = ref<any>({
   name: "",
   capacity: "",
   licensePlate: "",
+  station: "",
 });
 const submitted = ref(false);
 
@@ -167,31 +176,28 @@ const columns = ref([
   { label: "Tanker Name", field: "name" },
   { label: "Capacity", field: "capacity" },
   { label: "License Plate", field: "licensePlate" },
-  { label: "Assigned Driver", field: "assignedDriver" },
-  { label: "Assigned Station", field: "assignedStation" },
+  // { label: "Assigned Driver", field: "assignedDriver" },
+  { label: "Assigned Station", field: "station" },
   { label: "Actions", field: "actions", sortable: false },
 ]);
 
 onMounted(async () => {
-  await stationStore.fetchStations();
-  // owners.value = await userStore.fetchUsersByRole("OWNER");
+  await tankerStore.fetchTankers();
+  stations.value = await stationStore.fetchStations();
 });
+
+const getStationName = (stationId: string) => {
+  const station = stations.value.find((s) => s.id === stationId);
+  return station ? station.name : "Unknown";
+};
 
 // Filtered fuel tankers
 const filteredTankers = computed(() => {
-  let filtered = fuelTankers.value;
-  if (searchQuery.value) {
-    filtered = filtered.filter((tanker) =>
-      tanker.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    );
-  }
-  return filtered;
+  return tankerStore.fueltankers.map((tanker) => ({
+    ...tanker,
+    station: getStationName(tanker.stationId),
+  }));
 });
-
-const getOwnerName = (ownerId: string) => {
-  const owner = owners.value.find((o) => o.id === ownerId);
-  return owner ? owner.name : "Unknown";
-};
 
 // Open modal for adding/editing
 const openModal = (tanker = null) => {
@@ -204,6 +210,7 @@ const openModal = (tanker = null) => {
         licensePlate: "",
         // assignedDriver: "",
         // assignedStation: "",
+        station: "",
       };
   submitted.value = false;
   showModal.value = true;
