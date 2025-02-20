@@ -69,6 +69,20 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Delete Modal Component -->
+    <v-dialog v-model="showDeleteModal" max-width="600px">
+      <v-card>
+        <v-card-title>
+          <span>Confirm Deletion</span>
+        </v-card-title>
+        <v-card-text> Are you sure you want to delete this? </v-card-text>
+        <v-card-actions>
+          <v-btn color="green" @click="deleteStation">Confirm</v-btn>
+          <v-btn color="red" @click="showDeleteModal = false">Cancel</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -153,20 +167,32 @@ const saveStation = async () => {
   }
 };
 
-const confirmDelete = async (id: number) => {
-  if (confirm("Are you sure you want to delete this station?")) {
-    try {
-      await stationStore.deleteStation(id);
-      toast.success("Station deleted successfully!");
-    } catch (error) {
-      toast.error(error.message || "Failed to delete station.");
-    }
-  }
+const showDeleteModal = ref(false);
+const selectedStationId = ref("");
+const confirmDelete = (id: string) => {
+  selectedStationId.value = id;
+  showDeleteModal.value = true;
 };
 
 const exportStations = () => {
   console.log("Exporting stations:", stationStore.stations);
   toast.info("Stations exported (mock function).");
+};
+
+const deleteStation = async () => {
+  if (!selectedStationId.value) return;
+  console.log("🚀 ~ deleteTanker ~ id:", selectedStationId.value);
+
+  const result = await stationStore.deleteStation(selectedStationId.value);
+  console.log("🚀 ~ deleteTanker ~ result:", result);
+
+  if (result.success) {
+    toast.success("Station deleted successfully!");
+  } else {
+    toast.error(result.error);
+  }
+
+  showDeleteModal.value = false;
 };
 
 const columns = ref([

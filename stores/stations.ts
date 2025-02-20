@@ -94,14 +94,18 @@ export const useStationStore = defineStore("stations", {
     },
 
     // Delete a station
-    async deleteStation(id: number) {
+    async deleteStation(id: string) {
       try {
         const token = localStorage.getItem("authToken");
         if (!token) throw new Error("No authentication token found.");
 
-        await axios.delete(`/api/stations/${id}`, {
+        const response = await axios.delete(`/api/stations?id=${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
+        if (!response.data.success) {
+          throw new Error(response.data.error || "Failed to delete station.");
+        }
 
         this.stations = this.stations.filter((s) => s.id !== id);
         console.log("Station deleted:", id);

@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
         return await updateStation(updatedStation);
       case "DELETE":
         const { id } = getQuery(event);
-        return await deleteStation(Number(id));
+        return await deleteStation(String(id));
       default:
         return { statusCode: 405, error: "Method Not Allowed." };
     }
@@ -97,11 +97,21 @@ async function updateStation(updatedStation: {
 }
 
 // ✅ Delete a station
-async function deleteStation(id: number) {
+// async function deleteStation(id: number) {
+//   if (!id) {
+//     return { statusCode: 400, error: "Station ID is required." };
+//   }
+
+//   await prisma.station.delete({ where: { id } });
+//   return { success: true, message: "Station deleted successfully." };
+// }
+async function deleteStation(id) {
+  console.log("🚀 ~id api", id);
   if (!id) {
-    return { statusCode: 400, error: "Station ID is required." };
+    return { statusCode: 400, error: "Tanker ID is required." };
   }
 
-  await prisma.station.delete({ where: { id } });
+  const an = await prisma.station.delete({ where: { id } });
+  console.log("an", an);
   return { success: true, message: "Station deleted successfully." };
 }
