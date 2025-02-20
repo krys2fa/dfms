@@ -67,6 +67,7 @@ export const useTankersStore = defineStore("fueltankers", {
       name: string;
       capacity: number;
       licensePlate: string;
+      stationId: string;
     }) {
       try {
         const token = localStorage.getItem("authToken");
@@ -75,9 +76,12 @@ export const useTankersStore = defineStore("fueltankers", {
         if (
           !updatedTanker.name ||
           !updatedTanker.capacity ||
-          !updatedTanker.licensePlate
+          !updatedTanker.licensePlate ||
+          !updatedTanker.stationId
         ) {
-          throw new Error("All fields (name, location, owner) are required.");
+          throw new Error(
+            "All fields (name, capacity, license plate, station) are required."
+          );
         }
 
         const response = await axios.put(`/api/fueltankers/`, updatedTanker, {

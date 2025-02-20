@@ -217,20 +217,49 @@ const openModal = (tanker = null) => {
 };
 
 // Save tanker
-const saveTanker = () => {
-  if (editingTanker.value.id) {
-    const index = fuelTankers.value.findIndex(
-      (t) => t.id === editingTanker.value.id
-    );
-    if (index !== -1) {
-      fuelTankers.value[index] = { ...editingTanker.value };
-    }
-  } else {
-    editingTanker.value.id = fuelTankers.value.length + 1;
-    fuelTankers.value.push({ ...editingTanker.value });
+// const saveTanker = () => {
+//   if (editingTanker.value.id) {
+//     const index = fuelTankers.value.findIndex(
+//       (t) => t.id === editingTanker.value.id
+//     );
+//     if (index !== -1) {
+//       fuelTankers.value[index] = { ...editingTanker.value };
+//     }
+//   } else {
+//     editingTanker.value.id = fuelTankers.value.length + 1;
+//     fuelTankers.value.push({ ...editingTanker.value });
+//   }
+//   showModal.value = false;
+//   toast.success("Fuel Tanker saved successfully!");
+// };
+
+const saveTanker = async () => {
+  if (
+    !editingTanker.value.name ||
+    !editingTanker.value.capacity ||
+    !editingTanker.value.licensePlate ||
+    !editingTanker.value.stationId
+  ) {
+    toast.error("All fields are required!");
+    return;
   }
-  showModal.value = false;
-  toast.success("Fuel Tanker saved successfully!");
+  try {
+    const tankerData = {
+      ...editingTanker.value,
+      stationId: editingTanker.value.station, // Ensure correct key is used
+    };
+
+    if (editingTanker.value.id) {
+      await tankerStore.updateTanker(tankerData);
+      toast.success("Tanker updated successfully!");
+    } else {
+      await tankerStore.addTanker(tankerData);
+      toast.success("Tanker added successfully!");
+    }
+    showModal.value = false;
+  } catch (error) {
+    toast.error(error.message || "Failed to save tanker.");
+  }
 };
 
 // Export fuel tankers (Mock)

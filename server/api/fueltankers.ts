@@ -70,16 +70,19 @@ async function updateTanker(updatedTanker: {
   name: string;
   capacity: number;
   licensePlate: string;
+  stationId: string;
 }) {
   if (
     !updatedTanker.id ||
     !updatedTanker.name ||
     !updatedTanker.capacity ||
-    !updatedTanker.licensePlate
+    !updatedTanker.licensePlate ||
+    !updatedTanker.stationId
   ) {
     return {
       statusCode: 400,
-      error: "All fields (id, name, capacity, license plate) are required.",
+      error:
+        "All fields (id, name, capacity, license plate, stationId) are required.",
     };
   }
 
@@ -89,8 +92,10 @@ async function updateTanker(updatedTanker: {
       name: updatedTanker.name,
       capacity: updatedTanker.capacity,
       licensePlate: updatedTanker.licensePlate,
+      stationId: updatedTanker.stationId,
     },
   });
+  console.log("🚀 ~ updated:", updated);
 
   return { success: true, data: updated };
 }
