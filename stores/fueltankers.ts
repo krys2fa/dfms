@@ -60,13 +60,13 @@ export const useTankersStore = defineStore("fueltankers", {
         });
         console.log("🚀 ~ res:", response);
         // return;
-
-        this.fueltankers.unshift(response?.data?.data);
+        if (response?.data?.data) {
+          this.fueltankers.unshift(response?.data?.data);
+        }
 
         console.log("out", response?.data?.success);
 
         return response?.data?.success ? { status: true } : { status: false };
-        // return { success: true, message: "Fuel tanker added successfully." };
       } catch (error) {
         console.error("Error adding fuel tanker:", error);
         return {
@@ -110,20 +110,20 @@ export const useTankersStore = defineStore("fueltankers", {
         // return;
 
         // Update the local store state
-        const index = this.fueltankers.findIndex(
-          (tanker) => tanker.id === updatedTanker.id
-        );
-        if (index !== -1)
-          this.fueltankers[index] = {
-            ...this.fueltankers[index],
-            ...updatedTanker,
-          };
+        if (response?.data?.success) {
+          const index = this.fueltankers.findIndex(
+            (tanker) => tanker.id === updatedTanker.id
+          );
+          if (index !== -1)
+            this.fueltankers[index] = {
+              ...this.fueltankers[index],
+              ...updatedTanker,
+            };
+        }
 
         console.log("out", response?.data?.success);
 
         return response?.data?.success ? { status: true } : { status: false };
-
-        // return { success: true, message: "Tanker updated successfully." };
       } catch (error) {
         console.error("Error updating tanker:", error);
         return {

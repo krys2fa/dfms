@@ -54,7 +54,7 @@
               required
             />
             <v-select
-              v-model="editingStation.owner"
+              v-model="editingStation.ownerId"
               :items="owners"
               item-title="name"
               item-value="id"
@@ -131,12 +131,11 @@ const filteredStations = computed(() => {
     owner: getOwnerName(station.ownerId), // Instead of just station.ownerId
   }));
 });
-console.log("🚀 ~ filteredStations ~ filteredStations:", filteredStations);
 
 const openModal = (station = null) => {
   editingStation.value = station
-    ? { ...station }
-    : { id: null, name: "", location: "", owner: "" };
+    ? { ...station, ownerId: station.ownerId || "" }
+    : { id: null, name: "", location: "", ownerId: "" };
   showModal.value = true;
 };
 
@@ -144,22 +143,26 @@ const saveStation = async () => {
   if (
     !editingStation.value.name ||
     !editingStation.value.location ||
-    !editingStation.value.owner
+    !editingStation.value.ownerId
   ) {
     toast.error("All fields are required!");
-    return;
   }
   try {
     const stationData = {
       ...editingStation.value,
-      ownerId: editingStation.value.owner, // Ensure correct key is used
+      ownerId: editingStation.value.ownerId, // Ensure correct key is used
     };
+
     if (editingStation.value.id) {
-      await stationStore.updateStation(stationData);
-      toast.success("Station updated successfully!");
+      const result = await stationStore.updateStation(stationData);
+      result.status
+        ? toast.success("Station updated successfully!")
+        : toast.error("Error updating station!");
     } else {
-      await stationStore.addStation(stationData);
-      toast.success("Station added successfully!");
+      const result = await stationStore.addStation(stationData);
+      result.status
+        ? toast.success("Station added successfully!")
+        : toast.error("Error adding station!");
     }
     showModal.value = false;
   } catch (error) {
@@ -181,10 +184,8 @@ const exportStations = () => {
 
 const deleteStation = async () => {
   if (!selectedStationId.value) return;
-  console.log("🚀 ~ deleteTanker ~ id:", selectedStationId.value);
 
   const result = await stationStore.deleteStation(selectedStationId.value);
-  console.log("🚀 ~ deleteTanker ~ result:", result);
 
   if (result.success) {
     toast.success("Station deleted successfully!");

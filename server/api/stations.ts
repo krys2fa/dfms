@@ -67,7 +67,7 @@ async function addStation(station: {
 
 // ✅ Update a station
 async function updateStation(updatedStation: {
-  id: number;
+  id: string;
   name: string;
   location: string;
   ownerId: string;
@@ -87,9 +87,9 @@ async function updateStation(updatedStation: {
   const updated = await prisma.station.update({
     where: { id: updatedStation.id },
     data: {
-      name: updatedStation.name,
-      location: updatedStation.location,
-      ownerId: updatedStation.ownerId,
+      name: String(updatedStation.name),
+      location: String(updatedStation.location),
+      ownerId: String(updatedStation.ownerId),
     },
   });
 
@@ -97,21 +97,11 @@ async function updateStation(updatedStation: {
 }
 
 // ✅ Delete a station
-// async function deleteStation(id: number) {
-//   if (!id) {
-//     return { statusCode: 400, error: "Station ID is required." };
-//   }
-
-//   await prisma.station.delete({ where: { id } });
-//   return { success: true, message: "Station deleted successfully." };
-// }
-async function deleteStation(id) {
-  console.log("🚀 ~id api", id);
+async function deleteStation(id: string) {
   if (!id) {
     return { statusCode: 400, error: "Tanker ID is required." };
   }
 
   const an = await prisma.station.delete({ where: { id } });
-  console.log("an", an);
-  return { success: true, message: "Station deleted successfully." };
+  return { success: true };
 }

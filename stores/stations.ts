@@ -32,8 +32,10 @@ export const useStationStore = defineStore("stations", {
       name: string;
       location: string;
       ownerId: string;
+      owner: string;
     }) {
       try {
+        console.log("station", station);
         const token = localStorage.getItem("authToken");
         if (!token) throw new Error("No authentication token found.");
 
@@ -42,12 +44,15 @@ export const useStationStore = defineStore("stations", {
           throw new Error("All fields (name, location, owner) are required.");
         }
 
-        const { data } = await axios.post("/api/stations", station, {
+        const response = await axios.post("/api/stations", station, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        this.stations.unshift(data);
-        return { success: true, message: "Station added successfully." };
+        if (response?.data?.success) {
+          this.stations.unshift(response?.data?.data);
+        }
+
+        return response?.data?.success ? { status: true } : { status: false };
       } catch (error) {
         console.error("Error adding station:", error);
         return {
@@ -79,12 +84,14 @@ export const useStationStore = defineStore("stations", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const index = this.stations.findIndex(
-          (s) => s.id === updatedStation.id
-        );
-        if (index !== -1) this.stations[index] = updatedStation;
+        if (response?.data?.success) {
+          const index = this.stations.findIndex(
+            (s) => s.id === updatedStation.id
+          );
+          if (index !== -1) this.stations[index] = updatedStation;
+        }
 
-        return { success: true, message: "Station updated successfully." };
+        return response?.data?.success ? { status: true } : { status: false };
       } catch (error) {
         console.error("Error updating station:", error);
         return {
