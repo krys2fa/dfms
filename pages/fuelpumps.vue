@@ -49,7 +49,7 @@
               required
             />
             <v-select
-              v-model="editingPump.station"
+              v-model="editingPump.stationId"
               :items="stations"
               item-title="name"
               item-value="id"
@@ -61,6 +61,20 @@
         <v-card-actions>
           <v-btn color="green" @click="savePump">Save</v-btn>
           <v-btn color="red" @click="showModal = false">Cancel</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Delete Modal Component -->
+    <v-dialog v-model="showDeleteModal" max-width="600px">
+      <v-card>
+        <v-card-title>
+          <span>Confirm Deletion</span>
+        </v-card-title>
+        <v-card-text> Are you sure you want to delete this? </v-card-text>
+        <v-card-actions>
+          <v-btn color="green" @click="deletePump">Confirm</v-btn>
+          <v-btn color="red" @click="showDeleteModal = false">Cancel</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -92,6 +106,13 @@ const editingPump = ref<any>({
 });
 const stations = ref<{ id: string; name: string }[]>([]);
 
+const selectedPumpId = ref("");
+const showDeleteModal = ref(false);
+const confirmDelete = (id: string) => {
+  selectedPumpId.value = id;
+  showDeleteModal.value = true;
+};
+
 // Fetch pumps and stations
 onMounted(async () => {
   await pumpStore.fetchPumps();
@@ -118,7 +139,7 @@ const openModal = (pump = null) => {
 };
 
 const savePump = async () => {
-  if (!editingPump.value.name || !editingPump.value.station) {
+  if (!editingPump.value.name || !editingPump.value.stationId) {
     toast.error("All fields are required!");
     return;
   }
@@ -127,12 +148,19 @@ const savePump = async () => {
       ...editingPump.value,
       stationId: editingPump.value.stationId, // Ensure correct key is used
     };
+    console.log("eding", editingPump);
+    console.log("🚀 ~ savePump ~ pumpData:", pumpData);
+    // return;
     if (editingPump.value.id) {
-      await pumpStore.updatePump(pumpData);
-      toast.success("Pump updated successfully!");
+      const result = await pumpStore.updatePump(pumpData);
+      result.status
+        ? toast.success("Pump updated successfully!")
+        : toast.error("Error updating pump!");
     } else {
-      await pumpStore.addPump(pumpData);
-      toast.success("Pump added successfully!");
+      const result = await pumpStore.addPump(pumpData);
+      result.status
+        ? toast.success("Pump updated successfully!")
+        : toast.error("Error updating pump!");
     }
     showModal.value = false;
   } catch (error) {
@@ -140,15 +168,31 @@ const savePump = async () => {
   }
 };
 
-const confirmDelete = async (id: number) => {
-  if (confirm("Are you sure you want to delete this pump?")) {
-    try {
-      await pumpStore.deletePump(id);
-      toast.success("Pump deleted successfully!");
-    } catch (error) {
-      toast.error(error.message || "Failed to delete pump.");
-    }
+// const confirmDelete = async (id: number) => {
+//   if (confirm("Are you sure you want to delete this pump?")) {
+//     try {
+//       await pumpStore.deletePump(id);
+//       toast.success("Pump deleted successfully!");
+//     } catch (error) {
+//       toast.error(error.message || "Failed to delete pump.");
+//     }
+//   }
+// };
+
+const deletePump = async () => {
+  if (!selectedPumpId.value) return;
+  console.log("🚀 ~ deleteTanker ~ id:", selectedPumpId.value);
+
+  const result = await pumpStore.deletePump(selectedPumpId.value);
+  console.log("🚀 ~ deleteTanker ~ result:", result);
+
+  if (result.success) {
+    toast.success("Fuel Tanker deleted successfully!");
+  } else {
+    toast.error(result.error);
   }
+
+  showDeleteModal.value = false;
 };
 
 const exportPumps = () => {

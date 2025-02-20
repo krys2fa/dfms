@@ -159,7 +159,7 @@ export const useTankersStore = defineStore("fueltankers", {
         );
 
         console.log("🚀 ~ Fuel tanker deleted:", id);
-        return { success: true, message: "Fuel tanker deleted successfully." };
+        return { success: true };
       } catch (error) {
         console.error("🚀 ~ Error deleting tanker:", error);
 

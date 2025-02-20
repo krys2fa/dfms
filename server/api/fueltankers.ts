@@ -118,11 +118,11 @@ async function updateTanker(updatedTanker: {
 }
 
 // ✅ Delete a fuelTanker
-async function deleteTanker(id) {
+async function deleteTanker(id: string) {
   if (!id) {
     return { statusCode: 400, error: "Tanker ID is required." };
   }
 
-  const an = await prisma.fuelTanker.delete({ where: { id } });
+  await prisma.fuelTanker.delete({ where: { id } });
   return { success: true };
 }

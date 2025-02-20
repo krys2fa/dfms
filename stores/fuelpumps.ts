@@ -27,8 +27,20 @@ export const usePumpStore = defineStore("pump", {
 
     async addPump(pump: { name: string; stationId: string }) {
       try {
-        const response = await axios.post("/api/fuelpumps", pump);
-        this.fuelpumps.push(response.data);
+        console.log("pump", pump);
+        const token = localStorage.getItem("authToken");
+        if (!token) throw new Error("No authentication token found.");
+
+        const response = await axios.post("/api/fuelpumps", pump, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response?.data?.data) {
+          this.fuelpumps.unshift(response?.data?.data);
+        }
+
+        console.log("out", response?.data?.success);
+
+        return response?.data?.success ? { status: true } : { status: false };
       } catch (error) {
         console.error("Error adding pump:", error);
       }
@@ -46,16 +58,25 @@ export const usePumpStore = defineStore("pump", {
         if (!updatedPump.name || !updatedPump.stationId) {
           throw new Error("All fields (name, station) are required.");
         }
-        const { data } = await axios.put(`/api/fuelpumps/`, updatedPump, {
+        const response = await axios.put(`/api/fuelpumps/`, updatedPump, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
-        const index = this.fuelpumps.findIndex((p) => p.id === updatedPump.id);
-        if (index !== -1) {
-          this.fuelpumps[index] = { ...this.fuelpumps[index], ...data }; // ✅ Merge API response
+        if (response?.data?.success) {
+          const index = this.fuelpumps.findIndex(
+            (p) => p.id === updatedPump.id
+          );
+          if (index !== -1) {
+            this.fuelpumps[index] = {
+              ...this.fuelpumps[index],
+              ...updatedPump,
+            }; // ✅ Merge API response
+          }
         }
+        console.log("out", response?.data?.success);
 
-        this.fetchPumps();
+        return response?.data?.success ? { status: true } : { status: false };
+
+        // this.fetchPumps();
       } catch (error) {
         console.error("Error updating pump:", error);
       }
@@ -63,8 +84,22 @@ export const usePumpStore = defineStore("pump", {
 
     async deletePump(id: string) {
       try {
-        await axios.delete(`/api/fuelpumps/${id}`);
-        this.fuelpumps = this.fuelpumps.filter((p) => p.id !== id);
+        if (!id) throw new Error("Tanker ID is required.");
+
+        const token = localStorage.getItem("authToken");
+        if (!token) throw new Error("No authentication token found.");
+
+        const response = await axios.delete(`/api/fuelpumps?id=${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response?.data?.success) {
+          this.fuelpumps = this.fuelpumps.filter((p) => p.id !== id);
+          console.log("🚀 ~ Fuel tanker deleted:", id);
+          return { success: true };
+        }
+
+        throw new Error(response.data.error || "Failed to delete fuel pump.");
       } catch (error) {
         console.error("Error deleting pump:", error);
       }
