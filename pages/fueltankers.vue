@@ -26,7 +26,7 @@
             <v-btn small icon color="blue" @click="openModal(row)">
               <EditIcon />
             </v-btn>
-            <v-btn small icon color="red" @click="deleteTanker(row.id)">
+            <v-btn small icon color="red" @click="confirmDelete(row.id)">
               <TrashIcon />
             </v-btn>
           </span>
@@ -34,7 +34,20 @@
       </vue-good-table>
     </v-card>
 
-    <!-- Modal Component -->
+    <!-- Delete Modal Component -->
+    <v-dialog v-model="showDeleteModal" max-width="600px">
+      <v-card>
+        <v-card-title>
+          <span>Confirm Deletion</span>
+        </v-card-title>
+        <v-card-text> Are you sure you want to delete this? </v-card-text>
+        <v-card-actions>
+          <v-btn color="green" @click="deleteTanker">Confirm</v-btn>
+          <v-btn color="red" @click="showDeleteModal = false">Cancel</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- Add/Edit Modal -->
     <v-dialog v-model="showModal" max-width="600px">
       <v-card>
         <v-card-title>
@@ -111,8 +124,15 @@ const stationStore = useStationStore();
 const tankerStore = useTankersStore();
 
 // State
+const selectedTankerId = ref("");
+const confirmDelete = (id: string) => {
+  selectedTankerId.value = id;
+  showDeleteModal.value = true;
+};
+
 const searchQuery = ref("");
 const showModal = ref(false);
+const showDeleteModal = ref(false);
 const editingTanker = ref<any>({
   id: null,
   name: "",
@@ -122,60 +142,7 @@ const editingTanker = ref<any>({
 });
 const submitted = ref(false);
 
-// const owners = ref<{ id: string; name: string }[]>([]);
 const stations = ref<{ id: string; name: string }[]>([]);
-
-// Dummy data for fuel tankers
-const fuelTankers = ref([
-  {
-    id: 1,
-    name: "Tanker 1",
-    capacity: "5000L",
-    licensePlate: "ABC123",
-    assignedDriver: "John Doe",
-    assignedStation: "Alpha Fuel Station",
-  },
-  {
-    id: 2,
-    name: "Tanker 2",
-    capacity: "7000L",
-    licensePlate: "DEF456",
-    assignedDriver: "Jane Smith",
-    assignedStation: "Beta Gas Station",
-  },
-  {
-    id: 3,
-    name: "Tanker 3",
-    capacity: "6000L",
-    licensePlate: "GHI789",
-    assignedDriver: "Mark Johnson",
-    assignedStation: "Gamma Oil Depot",
-  },
-  {
-    id: 4,
-    name: "Tanker 4",
-    capacity: "8000L",
-    licensePlate: "JKL012",
-    assignedDriver: "Alice Brown",
-    assignedStation: "Delta Fuel Station",
-  },
-  {
-    id: 5,
-    name: "Tanker 5",
-    capacity: "9000L",
-    licensePlate: "MNO345",
-    assignedDriver: "Bob White",
-    assignedStation: "Epsilon Gas Station",
-  },
-  {
-    id: 6,
-    name: "Tanker 6",
-    capacity: "10000L",
-    licensePlate: "PQR678",
-    assignedDriver: "Charlie Black",
-    assignedStation: "Zeta Oil Depot",
-  },
-]);
 
 // Table columns
 const columns = ref([
@@ -266,9 +233,24 @@ const exportTankers = () => {
   toast.info("Fuel tankers exported (mock function).");
 };
 
-// Delete fuel tanker
-const deleteTanker = (id: number) => {
-  fuelTankers.value = fuelTankers.value.filter((t) => t.id !== id);
-  toast.success("Fuel Tanker deleted successfully!");
+const deleteTanker = async () => {
+  if (!selectedTankerId.value) return;
+  console.log("🚀 ~ deleteTanker ~ id:", selectedTankerId.value);
+
+  const result = await tankerStore.deleteTanker(selectedTankerId.value);
+  console.log("🚀 ~ deleteTanker ~ result:", result);
+
+  if (result.success) {
+    toast.success("Fuel Tanker deleted successfully!");
+  } else {
+    toast.error(result.error);
+  }
+
+  showDeleteModal.value = false;
+
+  console.log(
+    "🚀 ~ deleteTanker ~ tankerStore.fueltankers:",
+    tankerStore.fueltankers
+  );
 };
 </script>

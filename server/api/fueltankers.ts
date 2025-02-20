@@ -24,7 +24,14 @@ export default defineEventHandler(async (event) => {
         return await updateTanker(updatedTanker);
       case "DELETE":
         const { id } = getQuery(event);
-        return await deleteTanker(Number(id));
+        console.log("🚀 DELETE Request - Received ID:", id);
+        if (!id) {
+          return {
+            statusCode: 400,
+            error: "Tanker ID is missing from request.",
+          };
+        }
+        return await deleteTanker(String(id));
       default:
         return { statusCode: 405, error: "Method Not Allowed." };
     }
@@ -111,11 +118,13 @@ async function updateTanker(updatedTanker: {
 }
 
 // ✅ Delete a fuelTanker
-async function deleteTanker(id: number) {
+async function deleteTanker(id) {
+  console.log("🚀 ~id api", id);
   if (!id) {
     return { statusCode: 400, error: "Tanker ID is required." };
   }
 
-  await prisma.fuelTanker.delete({ where: { id } });
+  const an = await prisma.fuelTanker.delete({ where: { id } });
+  console.log("an", an);
   return { success: true, message: "Tanker deleted successfully." };
 }

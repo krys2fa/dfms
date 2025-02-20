@@ -132,24 +132,43 @@ export const useTankersStore = defineStore("fueltankers", {
       }
     },
 
-    // Delete a station
-    async deleteTanker(id: number) {
+    async deleteTanker(id: string) {
       try {
+        console.log("🚀 ~ deleteTanker ~ id:", id);
+
+        if (!id) throw new Error("Tanker ID is required.");
+
         const token = localStorage.getItem("authToken");
         if (!token) throw new Error("No authentication token found.");
 
-        await axios.delete(`/api/fueltankers/${id}`, {
+        const response = await axios.delete(`/api/fueltankers?id=${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        this.fueltankers = this.fueltankers.filter((s) => s.id !== id);
-        console.log("Fuel tanker deleted:", id);
+        console.log("🚀 ~ deleteTanker ~ response:", response);
+
+        if (!response.data.success) {
+          throw new Error(
+            response.data.error || "Failed to delete fuel tanker."
+          );
+        }
+
+        // Update store state by filtering out the deleted tanker
+        this.fueltankers = this.fueltankers.filter(
+          (tanker) => tanker.id !== id
+        );
+
+        console.log("🚀 ~ Fuel tanker deleted:", id);
         return { success: true, message: "Fuel tanker deleted successfully." };
       } catch (error) {
-        console.error("Error deleting tanker:", error);
+        console.error("🚀 ~ Error deleting tanker:", error);
+
         return {
+          success: false,
           error:
-            error.response?.data?.message || "Failed to delete fuel tanker.",
+            error.response?.data?.error ||
+            error.message ||
+            "Failed to delete fuel tanker.",
         };
       }
     },
