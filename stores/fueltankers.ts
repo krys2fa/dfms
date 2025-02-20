@@ -33,7 +33,10 @@ export const useTankersStore = defineStore("fueltankers", {
       name: string;
       capacity: number;
       licensePlate: string;
+      stationId: string;
     }) {
+      console.log("🚀 ~ fueltanker:", fueltanker);
+      // return;
       try {
         const token = localStorage.getItem("authToken");
         if (!token) throw new Error("No authentication token found.");
@@ -42,17 +45,28 @@ export const useTankersStore = defineStore("fueltankers", {
         if (
           !fueltanker.name ||
           !fueltanker.capacity ||
-          !fueltanker.licensePlate
+          !fueltanker.licensePlate ||
+          !fueltanker.stationId
         ) {
-          throw new Error("All fields (name, location, owner) are required.");
+          throw new Error(
+            "All fields (name, capacity, license plate, station) are required."
+          );
         }
 
-        const { data } = await axios.post("/api/fueltankers", fueltanker, {
+        console.log("fuel", fueltanker);
+
+        const response = await axios.post("/api/fueltankers", fueltanker, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        console.log("🚀 ~ res:", response);
+        // return;
 
-        this.fueltankers.unshift(data);
-        return { success: true, message: "Fuel tanker added successfully." };
+        this.fueltankers.unshift(response?.data?.data);
+
+        console.log("out", response?.data?.success);
+
+        return response?.data?.success ? { status: true } : { status: false };
+        // return { success: true, message: "Fuel tanker added successfully." };
       } catch (error) {
         console.error("Error adding fuel tanker:", error);
         return {
@@ -61,7 +75,7 @@ export const useTankersStore = defineStore("fueltankers", {
       }
     },
 
-    // Update a station
+    // Update a tanker
     async updateTanker(updatedTanker: {
       id: string;
       name: string;
@@ -69,6 +83,7 @@ export const useTankersStore = defineStore("fueltankers", {
       licensePlate: string;
       stationId: string;
     }) {
+      console.log("updatedTanker", updatedTanker);
       try {
         const token = localStorage.getItem("authToken");
         if (!token) throw new Error("No authentication token found.");
@@ -87,17 +102,32 @@ export const useTankersStore = defineStore("fueltankers", {
         const response = await axios.put(`/api/fueltankers/`, updatedTanker, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        console.log("Updated Tanker:", updatedTanker);
+        console.log("Token:", token);
+        console.log("URL:", `/api/fueltankers/${updatedTanker.id}`);
 
+        console.log("🚀 ~ response:", response);
+        // return;
+
+        // Update the local store state
         const index = this.fueltankers.findIndex(
-          (s) => s.id === updatedTanker.id
+          (tanker) => tanker.id === updatedTanker.id
         );
-        if (index !== -1) this.fueltankers[index] = updatedTanker;
+        if (index !== -1)
+          this.fueltankers[index] = {
+            ...this.fueltankers[index],
+            ...updatedTanker,
+          };
 
-        return { success: true, message: "Tanker updated successfully." };
+        console.log("out", response?.data?.success);
+
+        return response?.data?.success ? { status: true } : { status: false };
+
+        // return { success: true, message: "Tanker updated successfully." };
       } catch (error) {
-        console.error("Error updating station:", error);
+        console.error("Error updating tanker:", error);
         return {
-          error: error.response?.data?.message || "Failed to update station.",
+          error: error.response?.data?.message || "Failed to update tanker.",
         };
       }
     },

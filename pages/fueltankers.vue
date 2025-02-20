@@ -47,11 +47,17 @@
               v-model="editingTanker.name"
               label="Tanker Name"
               required
+              :rules="[(value) => !!value || 'Tanker Name is required']"
             />
             <v-text-field
               v-model="editingTanker.capacity"
               label="Capacity"
+              type="number"
               required
+              :rules="[
+                (value) => value >= 0 || 'Capacity must be a positive number',
+                (value) => !isNaN(value) || 'Capacity must be a number',
+              ]"
             />
             <v-text-field
               v-model="editingTanker.licensePlate"
@@ -110,7 +116,7 @@ const showModal = ref(false);
 const editingTanker = ref<any>({
   id: null,
   name: "",
-  capacity: "",
+  capacity: null,
   licensePlate: "",
   station: "",
 });
@@ -198,6 +204,7 @@ const filteredTankers = computed(() => {
     station: getStationName(tanker.stationId),
   }));
 });
+console.log("🚀 ~ filteredTankers ~ filteredTankers:", filteredTankers);
 
 // Open modal for adding/editing
 const openModal = (tanker = null) => {
@@ -206,7 +213,7 @@ const openModal = (tanker = null) => {
     : {
         id: null,
         name: "",
-        capacity: "",
+        capacity: null,
         licensePlate: "",
         // assignedDriver: "",
         // assignedStation: "",
@@ -216,29 +223,14 @@ const openModal = (tanker = null) => {
   showModal.value = true;
 };
 
-// Save tanker
-// const saveTanker = () => {
-//   if (editingTanker.value.id) {
-//     const index = fuelTankers.value.findIndex(
-//       (t) => t.id === editingTanker.value.id
-//     );
-//     if (index !== -1) {
-//       fuelTankers.value[index] = { ...editingTanker.value };
-//     }
-//   } else {
-//     editingTanker.value.id = fuelTankers.value.length + 1;
-//     fuelTankers.value.push({ ...editingTanker.value });
-//   }
-//   showModal.value = false;
-//   toast.success("Fuel Tanker saved successfully!");
-// };
-
 const saveTanker = async () => {
+  console.log("🚀 ~ filteredTankers ~ filteredTankers:", filteredTankers);
+
   if (
     !editingTanker.value.name ||
     !editingTanker.value.capacity ||
     !editingTanker.value.licensePlate ||
-    !editingTanker.value.stationId
+    !editingTanker.value.station
   ) {
     toast.error("All fields are required!");
     return;
@@ -248,13 +240,19 @@ const saveTanker = async () => {
       ...editingTanker.value,
       stationId: editingTanker.value.station, // Ensure correct key is used
     };
+    console.log("🚀 ~ saveTanker ~ tankerData:", tankerData);
+    // return;
 
     if (editingTanker.value.id) {
-      await tankerStore.updateTanker(tankerData);
-      toast.success("Tanker updated successfully!");
+      const result = await tankerStore.updateTanker(tankerData);
+      result.status
+        ? toast.success("Tanker updated successfully!")
+        : toast.error("Error updating tanker!");
     } else {
-      await tankerStore.addTanker(tankerData);
-      toast.success("Tanker added successfully!");
+      const result = await tankerStore.addTanker(tankerData);
+      result.status
+        ? toast.success("Tanker added successfully!")
+        : toast.error("Error adding tanker!");
     }
     showModal.value = false;
   } catch (error) {

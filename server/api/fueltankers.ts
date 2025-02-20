@@ -20,6 +20,7 @@ export default defineEventHandler(async (event) => {
         return await addTanker(newTanker);
       case "PUT":
         const updatedTanker = await readBody(event);
+        console.log("🚀 ~ defineEventHandler ~ updatedTanker:", updatedTanker);
         return await updateTanker(updatedTanker);
       case "DELETE":
         const { id } = getQuery(event);
@@ -45,21 +46,30 @@ async function addTanker(fuelTanker: {
   name: string;
   capacity: number;
   licensePlate: string;
+  stationId: string;
 }) {
-  if (!fuelTanker.name || !fuelTanker.capacity || !fuelTanker.licensePlate) {
+  if (
+    !fuelTanker.name ||
+    !fuelTanker.capacity ||
+    !fuelTanker.licensePlate ||
+    !fuelTanker.stationId
+  ) {
     return {
       statusCode: 400,
-      error: "All fields (name, capacity, license plate) are required.",
+      error:
+        "All fields (name, capacity, license plate, station) are required.",
     };
   }
 
   const newtanker = await prisma.fuelTanker.create({
     data: {
       name: fuelTanker.name,
-      capacity: fuelTanker.capacity,
+      capacity: Number(fuelTanker.capacity),
       licensePlate: fuelTanker.licensePlate,
+      stationId: fuelTanker.stationId,
     },
   });
+  console.log("🚀 ~ newtanker:", newtanker);
 
   return { success: true, data: newtanker };
 }
@@ -89,10 +99,10 @@ async function updateTanker(updatedTanker: {
   const updated = await prisma.fuelTanker.update({
     where: { id: updatedTanker.id },
     data: {
-      name: updatedTanker.name,
-      capacity: updatedTanker.capacity,
-      licensePlate: updatedTanker.licensePlate,
-      stationId: updatedTanker.stationId,
+      name: String(updatedTanker.name),
+      capacity: Number(updatedTanker.capacity),
+      licensePlate: String(updatedTanker.licensePlate),
+      stationId: String(updatedTanker.stationId),
     },
   });
   console.log("🚀 ~ updated:", updated);
